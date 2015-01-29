@@ -122,8 +122,10 @@ fn main() {
     let _ = renderer.clear();
     let _ = renderer.present();
 
-    //main loop
+    //gilder spawn limit
+    let mut gsl = 0;
 
+    //main loop
     loop {
         //clear the new board
         evolve_board(beta,alpha);
@@ -134,14 +136,18 @@ fn main() {
                 if key == KeyCode::Escape {
                     break;
                 }
-                if key == KeyCode::G {
+                if key == KeyCode::G && gsl == 0{
+                    gsl = 14;
                     build_glider(beta);
                 }
             }
             _ => {},
         }
         swap(alpha,beta);
-        //periodic.recv();
+        if gsl > 0 {
+            gsl -= 1;
+        }
+        periodic.recv();
     }
     sdl2::quit();
 
