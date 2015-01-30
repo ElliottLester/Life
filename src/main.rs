@@ -9,6 +9,11 @@ use std::io::Timer;
 use std::time::Duration;
 use std::num::ToPrimitive;
 use std::mem::swap;
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread::Thread;
+use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
 
 static WIDTH: isize = 400;
 static HEIGHT: isize = 300;
@@ -60,8 +65,10 @@ fn main() {
     //allocate two boards
     let mut a = BitvSet::with_capacity(total);
     let mut b  = BitvSet::with_capacity(total);
-    let alpha = &mut a;
-    let beta = &mut b;
+    //let alpha = &mut a;
+    //let beta = &mut b;
+    let alpha = &mut RefCell::new(a);
+    let beta = &mut RefCell::new(b);
 
     /*build a Blinker
     set_cell(2,1,&mut alpha);
@@ -81,7 +88,7 @@ fn main() {
 
     //create timer
     let mut timer = Timer::new().unwrap();
-    let periodic = timer.periodic(Duration::milliseconds(10));
+    let periodic = timer.periodic(Duration::milliseconds(100));
 
     println!("WIDTH={}\nHEIGHT={}\n",WIDTH,HEIGHT);
 
@@ -125,11 +132,38 @@ fn main() {
     //gilder spawn limit
     let mut gsl = 0;
 
+    let (masterTx,masterRx): (Sender<BitvSet>,Receiver<BitvSet>) = mpsc::channel();
+    
+    let mut workers = Vec::new();
+
+    for i in 0us..4us {
+        let (threadTx,threadRx): (Sender<RefCell<BitvSet>>,Receiver<RefCell<BitvSet>>) = mpsc::channel();
+        workers.push(threadTx);
+        let mTx = masterTx.clone();
+        Thread::spawn(move|| {
+            let id = i;
+            loop {
+                //get a new job
+                match threadRx.recv() {
+                    Ok(x) => {println!("Thread {} Got {:?}",id,x);mTx.send(BitvSet::new());()},
+                    Err(_) => {println!("{} Got an Err dying..",id);break}, //end the thread 
+                }
+            }
+        });
+    }
+
     //main loop
+    {
+    build_glider(&mut(*(alpha.borrow_mut())));
+    }
     loop {
         //clear the new board
-        evolve_board(beta,alpha);
-        print_board(beta,&renderer);
+        //dispatch alpha to threads
+        for i in 0us..4us {
+            workers[i].send(alpha.clone());
+        }    
+        evolve_board(beta.borrow_mut().deref_mut(),alpha.borrow().deref());
+        print_board(beta.borrow().deref(),&renderer);
         match poll_event() {
             Quit(_) => break,
             KeyDown(_, _, key, _, _, _) => {
@@ -138,10 +172,13 @@ fn main() {
                 }
                 if key == KeyCode::G && gsl == 0{
                     gsl = 14;
-                    build_glider(beta);
+                    build_glider(&mut(*(beta.borrow_mut())));
                 }
             }
             _ => {},
+        }
+        for i in 0us..4us {
+            let _ = masterRx.recv();
         }
         swap(alpha,beta);
         if gsl > 0 {
@@ -149,6 +186,7 @@ fn main() {
         }
         periodic.recv();
     }
+
     sdl2::quit();
 
 }
