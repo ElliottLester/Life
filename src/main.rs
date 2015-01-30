@@ -15,8 +15,8 @@ use std::thread::Thread;
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 
-static WIDTH: isize = 400;
-static HEIGHT: isize = 300;
+static WIDTH: isize = 800;
+static HEIGHT: isize = 600;
 
 #[derive(Copy)]
 struct Cell {
@@ -88,7 +88,7 @@ fn main() {
 
     //create timer
     let mut timer = Timer::new().unwrap();
-    let periodic = timer.periodic(Duration::milliseconds(100));
+    let periodic = timer.periodic(Duration::milliseconds(10));
 
     println!("WIDTH={}\nHEIGHT={}\n",WIDTH,HEIGHT);
 
@@ -125,16 +125,18 @@ fn main() {
     };
 
     let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
-    let _ = renderer.set_scale(2.0,2.0);
+    let _ = renderer.set_scale(1.0,1.0);
     let _ = renderer.clear();
     let _ = renderer.present();
 
     //gilder spawn limit
     let mut gsl = 0;
 
-    let (masterTx,masterRx): (Sender<BitvSet>,Receiver<BitvSet>) = mpsc::channel();
+    let (masterTx,masterRx): (Sender<RefCell<BitvSet>>,Receiver<RefCell<BitvSet>>) = mpsc::channel();
     
     let mut workers = Vec::new();
+
+    let work_range = total / 4;
 
     for i in 0us..4us {
         let (threadTx,threadRx): (Sender<RefCell<BitvSet>>,Receiver<RefCell<BitvSet>>) = mpsc::channel();
@@ -142,10 +144,22 @@ fn main() {
         let mTx = masterTx.clone();
         Thread::spawn(move|| {
             let id = i;
+            let (start,end) = (i*work_range,(i*work_range)+work_range);
+            //local working space
+            let mut c = BitvSet::with_capacity(total);
+            let charlie = &mut RefCell::new(c);
+            
+            //process loop 
             loop {
                 //get a new job
                 match threadRx.recv() {
-                    Ok(x) => {println!("Thread {} Got {:?}",id,x);mTx.send(BitvSet::new());()},
+                    Ok(x) => {
+                        println!("Thread {} Got work",id);
+                        {
+                            evolve_board(charlie.borrow_mut().deref_mut(), x.borrow().deref(),start,end);
+                        }
+                        mTx.send(charlie.clone());
+                        ()},
                     Err(_) => {println!("{} Got an Err dying..",id);break}, //end the thread 
                 }
             }
@@ -159,10 +173,20 @@ fn main() {
     loop {
         //clear the new board
         //dispatch alpha to threads
+        println!("dispatch");
         for i in 0us..4us {
             workers[i].send(alpha.clone());
         }    
-        evolve_board(beta.borrow_mut().deref_mut(),alpha.borrow().deref());
+        //evolve_board(beta.borrow_mut().deref_mut(),alpha.borrow().deref());
+        //combine threaded results into beta
+        println!("receive");
+        {beta.borrow_mut().clear();}
+        for i in 0us..4us {
+            {
+                beta.borrow_mut().deref_mut().union_with(masterRx.recv().unwrap().borrow().deref());
+            }
+        }
+        println!("render");
         print_board(beta.borrow().deref(),&renderer);
         match poll_event() {
             Quit(_) => break,
@@ -176,9 +200,6 @@ fn main() {
                 }
             }
             _ => {},
-        }
-        for i in 0us..4us {
-            let _ = masterRx.recv();
         }
         swap(alpha,beta);
         if gsl > 0 {
@@ -230,10 +251,10 @@ fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet) {
 }
 
 
-fn evolve_board(new: &mut BitvSet, old: &BitvSet) {
+fn evolve_board(new: &mut BitvSet, old: &BitvSet,start:usize,stop:usize) {
     new.clear();
     let mut cells:BTreeSet<isize> = BTreeSet::new();
-    for x in old.iter() {
+    for x in old.iter().filter(|i| (stop > *i && *i >= start)) {
         let c:Cord = Cell{v:x}.to_cord();
         for r in range_inclusive(c.r-1,c.r+1) {
             for c in range_inclusive(c.c-1,c.c+1) {
