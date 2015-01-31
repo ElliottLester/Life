@@ -12,6 +12,8 @@ use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 
 use life::sdl::{quit_sdl,render_sdl,init_sdl};
+use life::thread::{init_threads};
+
 use sdl2::event::poll_event;
 use sdl2::event::Event::{Quit, KeyDown};
 use sdl2::keycode::KeyCode;
@@ -58,7 +60,7 @@ fn main() {
 
     //main loop
     {
-    build_glider(&mut(*(alpha.borrow_mut())));
+        alpha.borrow_mut().build_glider();
     }
     loop {
        let pool = init_threads(4,total);
@@ -75,7 +77,7 @@ fn main() {
                     break;
                 }
                 if key == KeyCode::G{
-                    build_glider(&mut(*(beta.borrow_mut())));
+                    beta.borrow_mut().build_glider();
                 }
             }
             _ => {},

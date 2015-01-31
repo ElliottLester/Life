@@ -6,6 +6,7 @@ use std::thread::Thread;
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 
+use life::board::evolve_board;
 
 pub struct thread_pool {
     threads: usize,
