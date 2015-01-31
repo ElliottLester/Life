@@ -1,3 +1,5 @@
+use life::cord::Cord;
+
 #[derive(Copy)]
 struct Cell {
     v:usize,
@@ -8,11 +10,11 @@ impl Cell {
         self.v.to_uint()
     }
 
-    pub fn to_cord(&self) -> Cord {
+    pub fn to_cord(&self,width:usize,height:usize) -> Cord {
         let i = match self.v.to_int() {
             Some(i) => i,
             None => panic!("to_Cord"),
         };
-        Cord{r:(i/WIDTH)%HEIGHT,c:(i%WIDTH)%WIDTH}
+        Cord{r:(i/width)%height,c:(i%width)%width}
     }   
 }

@@ -1,3 +1,14 @@
+use std::collections::{BTreeSet,BitvSet};
+
+use life::cord::Cord;
+use life::cell::Cell;
+
+use sdl2;
+use sdl2::rect::Point;
+use sdl2::event::poll_event;
+use sdl2::event::Event::{Quit, KeyDown};
+use sdl2::keycode::KeyCode;
+
 pub fn init_sdl() -> &mut sdl2::render::RenderDrawer {
     //SDL2 Init
     sdl2::init(sdl2::INIT_VIDEO);

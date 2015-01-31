@@ -1,10 +1,6 @@
 extern crate sdl2;
-use sdl2::rect::Point;
-use sdl2::event::poll_event;
-use sdl2::event::Event::{Quit, KeyDown};
-use sdl2::keycode::KeyCode;
+mod life;
 use std::collections::{BTreeSet,BitvSet};
-use std::iter::{range_inclusive};
 use std::old_io::Timer;
 use std::time::Duration;
 use std::num::ToPrimitive;
@@ -14,6 +10,13 @@ use std::sync::mpsc;
 use std::thread::Thread;
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
+
+use life::sdl::{quit_sdl,render_sdl,init_sdl};
+use sdl2::event::poll_event;
+use sdl2::event::Event::{Quit, KeyDown};
+use sdl2::keycode::KeyCode;
+
+
 
 static WIDTH: isize = 800;
 static HEIGHT: isize = 600;

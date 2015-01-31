@@ -1,3 +1,12 @@
+use std::collections::{BTreeSet,BitvSet};
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread::Thread;
+
+use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
+
+
 pub struct thread_pool {
     threads: usize,
     masterRx: Receiver<RefCell<BitvSet>>,
@@ -26,7 +35,7 @@ impl thread_pool {
     }
 }
 
-pub fn init_threads(usize: threads , usize:work_total) -> thread_pool {
+pub fn init_threads(threads:usize ,work_total:usize) -> thread_pool {
     //create master channel
     let (masterTx,masterRx): (Sender<RefCell<BitvSet>>,Receiver<RefCell<BitvSet>>) = mpsc::channel();
    
@@ -45,7 +54,7 @@ pub fn init_threads(usize: threads , usize:work_total) -> thread_pool {
             let id = i;
             let (start,end) = (i*work_range,(i*work_range)+work_range);
             //local working space
-            let mut c = BitvSet::with_capacity(total);
+            let mut c = BitvSet::with_capacity(work_total);
             let charlie = &mut RefCell::new(c);
             
             //process loop 
@@ -64,6 +73,6 @@ pub fn init_threads(usize: threads , usize:work_total) -> thread_pool {
             }
         });
 
-        thread_pool{threads:threads,masterRx:masterRx,workers:workers}
     }
+    thread_pool{threads:threads,masterRx:masterRx,workers:workers}
 }
