@@ -1,4 +1,4 @@
-pub fn init_sdl() {
+pub fn init_sdl() -> &mut sdl2::render::RenderDrawer {
     //SDL2 Init
     sdl2::init(sdl2::INIT_VIDEO);
 
@@ -22,7 +22,7 @@ pub fn init_sdl() {
     drawer
 }
 
-pub fn render_sdl(input: &BitvSet,drawer) {
+pub fn render_sdl(input: &BitvSet,drawer: &mut sdl2::render::RenderDrawer) {
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
     drawer.clear();
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));

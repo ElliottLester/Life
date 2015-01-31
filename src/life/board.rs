@@ -1,20 +1,36 @@
-pub fn build_glider(input : &mut BitvSet) {
+struct board {
+    width:usize,
+    height:usize,
+    total:usize,
+    board: mut RefCell<BitvSet>,
+}
+
+impl board {
+    pub fn new(width:usize,height:usize) -> board {
+        board{
+            width: width,
+            height: height,
+            total: width*height,
+            board: RefCell::new(BitvSet::with_capacity(width*height));
+        }
+    }
+    pub fn build_glider(&self) {
     //build a glider
-    set_cell(Cord{r:2,c:0},input);
-    set_cell(Cord{r:2,c:1},input);
-    set_cell(Cord{r:2,c:2},input);
-    set_cell(Cord{r:1,c:2},input);
-    set_cell(Cord{r:0,c:1},input);
+    self.set_cell(Cord{r:2,c:0});
+    self.set_cell(Cord{r:2,c:1});
+    self.set_cell(Cord{r:2,c:2});
+    self.set_cell(Cord{r:1,c:2});
+    self.set_cell(Cord{r:0,c:1});
 }
 
-pub fn set_cell(a:Cord ,input: &mut BitvSet) {
+pub fn set_cell(&self,a:Cord) {
     let cell = a.to_cell();
-    (*input).insert(cell.v);
+    self.board.borrow_mut().deref_mut().insert(cell.v);
 }
 
-pub fn get_cell(a:Cord,input: &BitvSet) -> bool{
+pub fn get_cell(&self,a:Cord) -> bool{
     let cell = a.to_cell();
-    (*input).contains(&cell.v)
+    self.board.borrow().deref().contains(&cell.v)
 }
 
 pub fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet) {
