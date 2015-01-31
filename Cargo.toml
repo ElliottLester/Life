@@ -5,7 +5,7 @@ version = "0.0.1"
 authors = ["Elliott Lester"]
 
 [dependencies]
-sdl2 = "0.0.18"
+sdl2 = "0.0.22"
 
 #[dependencies.sdl2]
 #git = "https://github.com/AngryLawyer/rust-sdl2"

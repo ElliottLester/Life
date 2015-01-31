@@ -5,7 +5,7 @@ use sdl2::event::Event::{Quit, KeyDown};
 use sdl2::keycode::KeyCode;
 use std::collections::{BTreeSet,BitvSet};
 use std::iter::{range_inclusive};
-use std::io::Timer;
+use std::old_io::Timer;
 use std::time::Duration;
 use std::num::ToPrimitive;
 use std::mem::swap;
@@ -34,7 +34,7 @@ impl Cell {
             None => panic!("to_Cord"),
         };
         Cord{r:(i/WIDTH)%HEIGHT,c:(i%WIDTH)%WIDTH}
-    }   
+    }
 }
 
 
@@ -124,16 +124,18 @@ fn main() {
         Err(err) => panic!(format!("failed to create renderer: {}", err))
     };
 
-    let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
-    let _ = renderer.set_scale(1.0,1.0);
-    let _ = renderer.clear();
-    let _ = renderer.present();
+    let mut drawer = renderer.drawer();
+
+    let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
+    let _ = drawer.set_scale(1.0,1.0);
+    let _ = drawer.clear();
+    let _ = drawer.present();
 
     //gilder spawn limit
     let mut gsl = 0;
 
     let (masterTx,masterRx): (Sender<RefCell<BitvSet>>,Receiver<RefCell<BitvSet>>) = mpsc::channel();
-    
+
     let mut workers = Vec::new();
 
     let work_range = total / 4;
@@ -148,8 +150,8 @@ fn main() {
             //local working space
             let mut c = BitvSet::with_capacity(total);
             let charlie = &mut RefCell::new(c);
-            
-            //process loop 
+
+            //process loop
             loop {
                 //get a new job
                 match threadRx.recv() {
@@ -160,7 +162,7 @@ fn main() {
                         }
                         mTx.send(charlie.clone());
                         ()},
-                    Err(_) => {println!("{} Got an Err dying..",id);break}, //end the thread 
+                    Err(_) => {println!("{} Got an Err dying..",id);break}, //end the thread
                 }
             }
         });
@@ -176,7 +178,7 @@ fn main() {
         println!("dispatch");
         for i in 0us..4us {
             workers[i].send(alpha.clone());
-        }    
+        }
         //evolve_board(beta.borrow_mut().deref_mut(),alpha.borrow().deref());
         //combine threaded results into beta
         println!("receive");
@@ -187,10 +189,10 @@ fn main() {
             }
         }
         println!("render");
-        print_board(beta.borrow().deref(),&renderer);
+        print_board(beta.borrow().deref(),drawer.deref_mut());
         match poll_event() {
-            Quit(_) => break,
-            KeyDown(_, _, key, _, _, _) => {
+            Quit{..} => break,
+            KeyDown{keycode:key, ..} => {
                 if key == KeyCode::Escape {
                     break;
                 }
@@ -272,7 +274,7 @@ fn evolve_board(new: &mut BitvSet, old: &BitvSet,start:usize,stop:usize) {
     }
 }
 
-fn print_board(input: &BitvSet,renderer: &sdl2::render::Renderer) -> () {
+fn print_board(input: &BitvSet,renderer: &mut sdl2::render::RenderDrawer) -> () {
     //println!("Printing");
     let _ = renderer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
     renderer.clear();
