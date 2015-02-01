@@ -1,4 +1,6 @@
 use std::collections::{BTreeSet,BitvSet};
+use std::cell::RefCell;
+use std::num::ToPrimitive;
 
 use life::cord::Cord;
 use life::cell::Cell;
@@ -9,7 +11,7 @@ use sdl2::event::poll_event;
 use sdl2::event::Event::{Quit, KeyDown};
 use sdl2::keycode::KeyCode;
 
-pub fn init_sdl() {
+pub fn init_sdl(width:usize,height:usize) -> sdl2::render::Renderer {
     //SDL2 Init
     sdl2::init(sdl2::INIT_VIDEO);
 
@@ -22,28 +24,31 @@ pub fn init_sdl() {
         Ok(renderer) => renderer,
         Err(err) => panic!(format!("failed to create renderer: {}", err))
     };
-    
-    let mut drawer = renderer.drawer();
+    {
+        let mut drawer = renderer.drawer();
 
-    let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
-    let _ = drawer.set_scale(1.0,1.0);
-    let _ = drawer.clear();
-    let _ = drawer.present();
-    
-    drawer
+        let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
+        let _ = drawer.set_scale(1.0,1.0);
+        let _ = drawer.clear();
+        let _ = drawer.present();
+    }
+    renderer
 }
 
-pub fn render_sdl(input: &BitvSet,drawer: &mut sdl2::render::RenderDrawer) {
+pub fn render_sdl(input: &BitvSet,renderer: &sdl2::render::Renderer,width:usize,height:usize) {
+
+    let mut drawer = renderer.drawer();
+
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
     drawer.clear();
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
     for x in input.iter() {
-        let c:Cord = Cell{v:x}.to_cord();
+        let c:Cord = Cell{v:x}.to_cord(width,height);
         let r = c.r.to_i32().unwrap();
         let c = c.c.to_i32().unwrap();
         let _ = drawer.draw_point(Point::new(c,r));
     }
-    drawer.present(); 
+    drawer.present();
 }
 
 pub fn quit_sdl() {

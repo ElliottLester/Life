@@ -1,8 +1,9 @@
 use life::cord::Cord;
+use std::num::ToPrimitive;
 
 #[derive(Copy)]
-struct Cell {
-    v:usize,
+pub struct Cell {
+    pub v:usize,
 }
 
 impl Cell {
@@ -11,10 +12,7 @@ impl Cell {
     }
 
     pub fn to_cord(&self,width:usize,height:usize) -> Cord {
-        let i = match self.v.to_int() {
-            Some(i) => i,
-            None => panic!("to_Cord"),
-        };
-        Cord{r:(i/width)%height,c:(i%width)%width}
-    }   
+        let i = self.v;
+        Cord{r:((i/width)%height).to_int().unwrap(),c:((i%width)%width).to_int().unwrap()}
+    }
 }

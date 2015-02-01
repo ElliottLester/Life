@@ -2,8 +2,7 @@ use std::collections::{BTreeSet,BitvSet};
 use std::iter::{range_inclusive};
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
-
-
+use std::num::ToPrimitive;
 
 use life::cord::Cord;
 use life::cell::Cell;
@@ -12,7 +11,7 @@ struct board {
     width:usize,
     height:usize,
     total:usize,
-    board: &mut RefCell<BitvSet>,
+    board: RefCell<BitvSet>,
 }
 
 impl board {
@@ -43,6 +42,15 @@ impl board {
         self.board.borrow().deref().contains(&cell.v)
     }
 }
+
+pub fn build_glider(a:&mut BitvSet,width:usize,height:usize) {
+        //build a glider
+        set_cell(Cord{r:2,c:0},a,width,height);
+        set_cell(Cord{r:2,c:1},a,width,height);
+        set_cell(Cord{r:2,c:2},a,width,height);
+        set_cell(Cord{r:1,c:2},a,width,height);
+        set_cell(Cord{r:0,c:1},a,width,height);
+    }
 
 pub fn set_cell(a:Cord,input: &mut BitvSet, width:usize,height:usize) {
     let cell = a.to_cell(width,height);
@@ -78,7 +86,7 @@ pub fn evolve_board(new: &mut BitvSet, old: &BitvSet,start:usize,stop:usize,widt
     new.clear();
     let mut cells:BTreeSet<isize> = BTreeSet::new();
     for x in old.iter().filter(|i| (stop > *i && *i >= start)) {
-        let c:Cord = Cell{v:x}.to_cord();
+        let c:Cord = Cell{v:x}.to_cord(width,height);
         for r in range_inclusive(c.r-1,c.r+1) {
             for c in range_inclusive(c.c-1,c.c+1) {
                 cells.insert(Cord{r:r,c:c}.to_cell(width,height).v.to_int().unwrap());

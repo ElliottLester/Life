@@ -12,6 +12,7 @@ use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 
 use life::sdl::{quit_sdl,render_sdl,init_sdl};
+use life::board::{build_glider};
 use life::thread::{init_threads};
 
 use sdl2::event::poll_event;
@@ -20,15 +21,12 @@ use sdl2::keycode::KeyCode;
 
 
 
-static WIDTH: isize = 800;
-static HEIGHT: isize = 600;
+static WIDTH: usize = 800;
+static HEIGHT: usize = 600;
 
 fn main() {
 
-    let total = match (WIDTH * HEIGHT).to_uint() {
-        Some(x) => x,
-        None => panic!("Unable to allocate table of size {}",(WIDTH*HEIGHT)),
-    };
+    let total = (WIDTH * HEIGHT);
     //allocate two boards
     let mut a = BitvSet::with_capacity(total);
     let mut b  = BitvSet::with_capacity(total);
@@ -54,22 +52,17 @@ fn main() {
     let mut timer = Timer::new().unwrap();
     let periodic = timer.periodic(Duration::milliseconds(10));
 
-    println!("WIDTH={}\nHEIGHT={}\n",WIDTH,HEIGHT);
-    
-    let drawer = init_sdl();
+    let render = init_sdl(WIDTH,HEIGHT);
 
     //main loop
-    {
-        alpha.borrow_mut().build_glider();
-    }
     loop {
-       let pool = init_threads(4,total);
+       let pool = init_threads(4,total,WIDTH,HEIGHT);
 
        pool.dispatch_threads(alpha);
 
        pool.compose_threads(beta);
 
-       render_sdl(beta.borrow().deref(),drawer.deref_mut());
+       render_sdl(beta.borrow().deref(),&render,WIDTH,HEIGHT);
         match poll_event() {
             Quit{..} => break,
             KeyDown{keycode:key, ..} => {
@@ -77,7 +70,7 @@ fn main() {
                     break;
                 }
                 if key == KeyCode::G{
-                    beta.borrow_mut().build_glider();
+                    build_glider(beta.borrow_mut().deref_mut(),WIDTH,HEIGHT);
                 }
             }
             _ => {},
