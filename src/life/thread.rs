@@ -75,7 +75,7 @@ pub fn init_threads(threads:usize ,work_total:usize,width:usize,height:usize) ->
                             Err(e) => println!("Thread {}: Returning work failed {}",id,e),
                         }
                         ()},
-                    Err(e) => {println!("{} Got an Err dying.. {}",id,e);break}, //end the thread
+                    Err(e) => {println!("Thread {}: Got an Err dying.. {}",id,e);break}, //end the thread
                 };
             }
         });
