@@ -30,31 +30,18 @@ fn main() {
 
     let total = WIDTH * HEIGHT;
     //allocate two boards
-    let a = BitvSet::with_capacity(total);
-    let b  = BitvSet::with_capacity(total);
+    let a = Board::new(WIDTH,HEIGHT);
+    let b = Board::new(WIDTH,HEIGHT);
     let alpha = &mut RefCell::new(a);
-    let beta = &mut RefCell::new(b);
+    let beta  = &mut RefCell::new(b);
 
-    /*build a Blinker
-    set_cell(2,1,&mut alpha);
-    set_cell(2,2,&mut alpha);
-    set_cell(2,3,&mut alpha);*/
-
-    /* build toad
-    set_cell(1,2,&mut alpha);
-    set_cell(1,3,&mut alpha);
-    set_cell(1,4,&mut alpha);
-    set_cell(2,1,&mut alpha);
-    set_cell(2,2,&mut alpha);
-    set_cell(2,3,&mut alpha);*/
-
-    //create timer
+    //create timer for ticks
     let mut timer = Timer::new().unwrap();
     let periodic = timer.periodic(Duration::milliseconds(10));
 
     let render = init_sdl(WIDTH,HEIGHT);
 
-    let pool = init_threads(6,total,WIDTH,HEIGHT);
+    let pool = init_threads(6,alpha);
 
     //main loop
     loop {

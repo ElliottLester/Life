@@ -16,7 +16,7 @@ pub struct ThreadPool {
 }
 
 impl ThreadPool {
-    pub fn dispatch_threads(&self,alpha: &RefCell<BitvSet>) -> () {
+    pub fn dispatch_threads(&self,alpha: &RefCell<Board>) -> () {
         for i in 0us..self.threads {
             match self.workers[i].send(alpha.clone()) {
                 Ok(_) => (),
@@ -25,7 +25,7 @@ impl ThreadPool {
         }
     }
 
-    pub fn compose_threads(&self,beta: &RefCell<BitvSet>) -> () {
+    pub fn compose_threads(&self,beta: &RefCell<Board>) -> () {
         {
             //get mut access to beta
             let mut beta_mut = beta.borrow_mut();
@@ -38,7 +38,7 @@ impl ThreadPool {
     }
 }
 
-pub fn init_threads(threads:usize ,work_total:usize,width:usize,height:usize) -> ThreadPool {
+pub fn init_threads(threads:usize, input: &Board) -> ThreadPool {
     //create master channel
     let (master_tx,master_rx): (Sender<RefCell<BitvSet>>,Receiver<RefCell<BitvSet>>) = mpsc::channel();
 
@@ -46,7 +46,7 @@ pub fn init_threads(threads:usize ,work_total:usize,width:usize,height:usize) ->
     let mut workers = Vec::new();
 
     //calculate the cells to be processed by each thread
-    let work_range = work_total / threads;
+    let work_range = input.total / threads;
 
     //build threads
     for i in 0us..threads {
@@ -57,7 +57,7 @@ pub fn init_threads(threads:usize ,work_total:usize,width:usize,height:usize) ->
             let id = i;
             let (start,end) = (i*work_range,(i*work_range)+work_range);
             //local working space
-            let c = BitvSet::with_capacity(work_total);
+            let c = Board::new(input.width,input.height);
             let charlie = &mut RefCell::new(c);
 
             //process loop
@@ -67,7 +67,7 @@ pub fn init_threads(threads:usize ,work_total:usize,width:usize,height:usize) ->
                     Ok(x) => {
                         //println!("Thread {} Got work",id);
                         {
-                            evolve_board(charlie.borrow_mut().deref_mut(), x.borrow().deref(),start,end,width,height);
+                            evolve_board(charlie.borrow_mut().deref_mut(), x.borrow().deref(),start,end);
                         }
                         
                         match master_tx.send(charlie.clone()) {

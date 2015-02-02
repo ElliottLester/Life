@@ -11,7 +11,7 @@ struct Board {
     width:usize,
     height:usize,
     total:usize,
-    board: RefCell<BitvSet>,
+    board: BitvSet,
 }
 
 impl Board {
@@ -20,7 +20,7 @@ impl Board {
             width: width,
             height: height,
             total: width*height,
-            board: RefCell::new(BitvSet::with_capacity(width*height)),
+            board: BitvSet::with_capacity(width*height),
         }
     }
     pub fn build_glider(&self) {
@@ -99,3 +99,17 @@ pub fn evolve_board(new: &mut BitvSet, old: &BitvSet,start:usize,stop:usize,widt
         evolve_cell(c,new,old,width,height);
     }
 }
+    /*build a Blinker
+    set_cell(2,1,&mut alpha);
+    set_cell(2,2,&mut alpha);
+    set_cell(2,3,&mut alpha);*/
+
+    /* build toad
+    set_cell(1,2,&mut alpha);
+    set_cell(1,3,&mut alpha);
+    set_cell(1,4,&mut alpha);
+    set_cell(2,1,&mut alpha);
+    set_cell(2,2,&mut alpha);
+    set_cell(2,3,&mut alpha);*/
+
+

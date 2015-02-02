@@ -8,7 +8,17 @@ pub struct Cord {
 }
 
 impl Cord {
-    pub fn to_cell(&self,width:usize,height:usize) -> Cell {
+    pub fn new(r:isize,c:isize) -> Cord {
+        Cord{r:r,c:c}
+    }
+    pub fn new(i:usize,width:usize,height:usize) -> Cord {
+        Cord{
+            r:((i/width)%height).to_int().unwrap(),
+            c:((i%width)%width).to_int().unwrap()
+        }
+    }
+
+    pub fn to_uint(&self,width:usize,height:usize) -> usize {
         let iheight = height.to_int().unwrap();
         let iwidth = width.to_int().unwrap();
 
