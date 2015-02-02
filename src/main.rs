@@ -54,9 +54,10 @@ fn main() {
 
     let render = init_sdl(WIDTH,HEIGHT);
 
+    let pool = init_threads(6,total,WIDTH,HEIGHT);
+
     //main loop
     loop {
-       let pool = init_threads(4,total,WIDTH,HEIGHT);
 
        pool.dispatch_threads(alpha);
 
