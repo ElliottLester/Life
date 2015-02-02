@@ -7,16 +7,16 @@ use std::num::ToPrimitive;
 use life::cord::Cord;
 use life::cell::Cell;
 
-struct board {
+struct Board {
     width:usize,
     height:usize,
     total:usize,
     board: RefCell<BitvSet>,
 }
 
-impl board {
-    pub fn new(width:usize,height:usize) -> board {
-        board{
+impl Board {
+    pub fn new(width:usize,height:usize) -> Board {
+        Board{
             width: width,
             height: height,
             total: width*height,

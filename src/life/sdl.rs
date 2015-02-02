@@ -1,5 +1,4 @@
-use std::collections::{BTreeSet,BitvSet};
-use std::cell::RefCell;
+use std::collections::BitvSet;
 use std::num::ToPrimitive;
 
 use life::cord::Cord;
@@ -7,15 +6,14 @@ use life::cell::Cell;
 
 use sdl2;
 use sdl2::rect::Point;
-use sdl2::event::poll_event;
-use sdl2::event::Event::{Quit, KeyDown};
-use sdl2::keycode::KeyCode;
 
 pub fn init_sdl(width:usize,height:usize) -> sdl2::render::Renderer {
     //SDL2 Init
     sdl2::init(sdl2::INIT_VIDEO);
 
-    let window = match sdl2::video::Window::new("rust-sdl2 demo: Video", sdl2::video::WindowPos::PosCentered, sdl2::video::WindowPos::PosCentered, 800, 600, sdl2::video::OPENGL) {
+    let (window_width,window_height):(i32,i32) = (800,600);
+
+    let window = match sdl2::video::Window::new("rust-sdl2 demo: Video", sdl2::video::WindowPos::PosCentered, sdl2::video::WindowPos::PosCentered, window_width, window_height, sdl2::video::OPENGL) {
         Ok(window) => window,
         Err(err) => panic!(format!("failed to create window: {}", err))
     };
@@ -28,7 +26,11 @@ pub fn init_sdl(width:usize,height:usize) -> sdl2::render::Renderer {
         let mut drawer = renderer.drawer();
 
         let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
-        let _ = drawer.set_scale(1.0,1.0);
+        let (xscale,yscale):(f32,f32) = (
+                window_width.to_f32().unwrap()/width.to_f32().unwrap(),
+                window_height.to_f32().unwrap()/height.to_f32().unwrap()
+            );
+        let _ = drawer.set_scale(xscale,yscale);
         let _ = drawer.clear();
         let _ = drawer.present();
     }

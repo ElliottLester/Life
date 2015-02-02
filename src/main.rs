@@ -1,13 +1,15 @@
+#![feature(core)]
+#![feature(collections)] 
+#![feature(std_misc)]
+#![feature(io)]
+
 extern crate sdl2;
 mod life;
-use std::collections::{BTreeSet,BitvSet};
+
+use std::collections::BitvSet;
 use std::old_io::Timer;
 use std::time::Duration;
-use std::num::ToPrimitive;
 use std::mem::swap;
-use std::sync::mpsc::{Sender, Receiver};
-use std::sync::mpsc;
-use std::thread::Thread;
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 
@@ -21,17 +23,15 @@ use sdl2::keycode::KeyCode;
 
 
 
-static WIDTH: usize = 800;
-static HEIGHT: usize = 600;
+static WIDTH: usize = 200;
+static HEIGHT: usize = 150;
 
 fn main() {
 
-    let total = (WIDTH * HEIGHT);
+    let total = WIDTH * HEIGHT;
     //allocate two boards
-    let mut a = BitvSet::with_capacity(total);
-    let mut b  = BitvSet::with_capacity(total);
-    //let alpha = &mut a;
-    //let beta = &mut b;
+    let a = BitvSet::with_capacity(total);
+    let b  = BitvSet::with_capacity(total);
     let alpha = &mut RefCell::new(a);
     let beta = &mut RefCell::new(b);
 
@@ -77,10 +77,11 @@ fn main() {
             _ => {},
         }
         swap(alpha,beta);
-        periodic.recv();
+        let _ = periodic.recv();
     }
     quit_sdl();
 }
+
 #[test]
 fn test_board() {
     for row in range_inclusive(-1,HEIGHT) {
