@@ -11,7 +11,7 @@ pub fn init_sdl(width:usize,height:usize) -> sdl2::render::Renderer {
     //SDL2 Init
     sdl2::init(sdl2::INIT_VIDEO);
 
-    let (window_width,window_height):(i32,i32) = (800,600);
+    let (window_width,window_height):(i32,i32) = (1024,768);
 
     let window = match sdl2::video::Window::new("rust-sdl2 demo: Video", sdl2::video::WindowPos::PosCentered, sdl2::video::WindowPos::PosCentered, window_width, window_height, sdl2::video::OPENGL) {
         Ok(window) => window,

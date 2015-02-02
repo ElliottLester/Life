@@ -23,8 +23,8 @@ use sdl2::keycode::KeyCode;
 
 
 
-static WIDTH: usize = 200;
-static HEIGHT: usize = 150;
+static WIDTH: usize = 256;
+static HEIGHT: usize = 192;
 
 fn main() {
 
