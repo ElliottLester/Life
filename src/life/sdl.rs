@@ -2,7 +2,11 @@ use std::collections::BitvSet;
 use std::num::ToPrimitive;
 
 use life::cord::Cord;
-use life::cell::Cell;
+use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
+
+use life::board::Board;
+
 
 use sdl2;
 use sdl2::rect::Point;
@@ -37,15 +41,15 @@ pub fn init_sdl(width:usize,height:usize) -> sdl2::render::Renderer {
     renderer
 }
 
-pub fn render_sdl(input: &BitvSet,renderer: &sdl2::render::Renderer,width:usize,height:usize) {
+pub fn render_sdl(input: &Board,renderer: &sdl2::render::Renderer,width:usize,height:usize) {
 
     let mut drawer = renderer.drawer();
 
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
     drawer.clear();
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
-    for x in input.iter() {
-        let c:Cord = Cell{v:x}.to_cord(width,height);
+    for x in input.board.iter() {
+        let c:Cord = Cord::from_uint(x,width,height);
         let r = c.r.to_i32().unwrap();
         let c = c.c.to_i32().unwrap();
         let _ = drawer.draw_point(Point::new(c,r));

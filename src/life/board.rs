@@ -5,13 +5,13 @@ use std::ops::{Deref, DerefMut};
 use std::num::ToPrimitive;
 
 use life::cord::Cord;
-use life::cell::Cell;
 
-struct Board {
-    width:usize,
-    height:usize,
-    total:usize,
-    board: BitvSet,
+#[derive(Clone)]
+pub struct Board {
+    pub width:usize,
+    pub height:usize,
+    pub total:usize,
+    pub board : mut BitvSet,
 }
 
 impl Board {
@@ -33,16 +33,15 @@ impl Board {
     }
 
     pub fn set_cell(&self,a:Cord) {
-        let cell = a.to_cell(self.width,self.height);
-        self.board.borrow_mut().deref_mut().insert(cell.v);
+        self.board.insert(a.to_uint(self.width,self.height));
     }
 
     pub fn get_cell(&self,a:Cord) -> bool{
-        let cell = a.to_cell(self.width,self.height);
-        self.board.borrow().deref().contains(&cell.v)
+        self.board.contains(&a.to_uint(self.width,self.height))
     }
 }
 
+/*
 pub fn build_glider(a:&mut BitvSet,width:usize,height:usize) {
         //build a glider
         set_cell(Cord{r:2,c:0},a,width,height);
@@ -51,18 +50,17 @@ pub fn build_glider(a:&mut BitvSet,width:usize,height:usize) {
         set_cell(Cord{r:1,c:2},a,width,height);
         set_cell(Cord{r:0,c:1},a,width,height);
     }
-
-pub fn set_cell(a:Cord,input: &mut BitvSet, width:usize,height:usize) {
-    let cell = a.to_cell(width,height);
-    input.insert(cell.v);
+*/
+fn set_cell(a:Cord,input: &mut BitvSet, width:usize,height:usize) {
+    input.insert(a.to_uint(width,height));
 }
 
-pub fn get_cell(a:Cord,input: &BitvSet,width:usize,height:usize) -> bool {
-    let cell = a.to_cell(width,height);
-    input.contains(&cell.v)
+fn get_cell(a:Cord,input: &BitvSet,width:usize,height:usize) -> bool {
+    input.contains(&a.to_uint(width,height))
 }
 
-pub fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet,width:usize,height:usize) {
+
+fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet,width:usize,height:usize) {
     let mut n:isize = 0;
     for r in range_inclusive(a.r-1,a.r+1) {
         for c in range_inclusive(a.c-1,a.c+1) {
@@ -82,21 +80,24 @@ pub fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet,width:usize,height:usiz
 }
 
 
-pub fn evolve_board(new: &mut BitvSet, old: &BitvSet,start:usize,stop:usize,width:usize,height:usize) {
-    new.clear();
+pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usize,stop:usize) {
+    let new = alpha.borrow_mut().deref_mut();
+    let old = beta.borrow().deref();
+    let width = old.width;
+    let height = old.height;
     let mut cells:BTreeSet<isize> = BTreeSet::new();
-    for x in old.iter().filter(|i| (stop > *i && *i >= start)) {
-        let c:Cord = Cell{v:x}.to_cord(width,height);
+    for x in old.board.iter().filter(|i| (stop > *i && *i >= start)) {
+        let c:Cord = Cord::from_uint(x,width,height);
         for r in range_inclusive(c.r-1,c.r+1) {
             for c in range_inclusive(c.c-1,c.c+1) {
-                cells.insert(Cord{r:r,c:c}.to_cell(width,height).v.to_int().unwrap());
+                cells.insert(Cord::new(r,c).to_uint(width,height).to_int().unwrap());
             }
         }
     }
 
     for x in cells.iter() {
-        let c = Cell{v:x.to_uint().unwrap()}.to_cord(width,height);
-        evolve_cell(c,new,old,width,height);
+        let c = Cord::from_uint(x.to_uint().unwrap(),width,height);
+        evolve_cell(c,&mut new.board, &old.board,width,height);
     }
 }
     /*build a Blinker
