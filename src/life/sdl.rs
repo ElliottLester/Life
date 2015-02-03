@@ -1,9 +1,6 @@
-use std::collections::BitvSet;
 use std::num::ToPrimitive;
 
 use life::cord::Cord;
-use std::cell::RefCell;
-use std::ops::{Deref, DerefMut};
 
 use life::board::Board;
 

@@ -1,12 +1,11 @@
 #![feature(core)]
-#![feature(collections)] 
+#![feature(collections)]
 #![feature(std_misc)]
 #![feature(io)]
 
 extern crate sdl2;
 mod life;
 
-use std::collections::BitvSet;
 use std::old_io::Timer;
 use std::time::Duration;
 use std::mem::swap;
@@ -28,7 +27,6 @@ static HEIGHT: usize = 192;
 
 fn main() {
 
-    let total = WIDTH * HEIGHT;
     //allocate two boards
     let a = Board::new(WIDTH,HEIGHT);
     let b = Board::new(WIDTH,HEIGHT);

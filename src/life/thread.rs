@@ -1,10 +1,9 @@
-use std::collections::BitvSet;
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
 use std::thread::Thread;
 
 use std::cell::RefCell;
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 use life::board::evolve_board;
 use life::board::Board;
@@ -73,7 +72,7 @@ pub fn init_threads(threads:usize, input: &Board) -> ThreadPool {
                         {
                             evolve_board(charlie, &x,start,end);
                         }
-                        
+
                         match master_tx.send(charlie.clone()) {
                             Ok(_) => (),
                             Err(e) => println!("Thread {}: Returning work failed {}",id,e),

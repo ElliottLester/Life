@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet,BitvSet};
 use std::iter::{range_inclusive};
 use std::cell::RefCell;
-use std::ops::{Deref, DerefMut};
 use std::num::ToPrimitive;
 
 use life::cord::Cord;
@@ -11,7 +10,7 @@ pub struct Board {
     pub width:usize,
     pub height:usize,
     pub total:usize,
-    pub board : mut BitvSet,
+    pub board : BitvSet,
 }
 
 impl Board {
@@ -23,7 +22,7 @@ impl Board {
             board: BitvSet::with_capacity(width*height),
         }
     }
-    pub fn build_glider(&self) {
+    pub fn build_glider(&mut self) {
         //build a glider
         self.set_cell(Cord{r:2,c:0});
         self.set_cell(Cord{r:2,c:1});
@@ -32,7 +31,7 @@ impl Board {
         self.set_cell(Cord{r:0,c:1});
     }
 
-    pub fn set_cell(&self,a:Cord) {
+    pub fn set_cell(&mut self,a:Cord) {
         self.board.insert(a.to_uint(self.width,self.height));
     }
 
@@ -81,8 +80,9 @@ fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet,width:usize,height:usize) {
 
 
 pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usize,stop:usize) {
-    let new = alpha.borrow_mut().deref_mut();
-    let old = beta.borrow().deref();
+    let mut new = alpha.borrow_mut();
+    new.board.clear();
+    let old = beta.borrow();
     let width = old.width;
     let height = old.height;
     let mut cells:BTreeSet<isize> = BTreeSet::new();
