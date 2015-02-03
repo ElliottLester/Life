@@ -23,12 +23,35 @@ impl Board {
         }
     }
     pub fn build_glider(&mut self) {
+        let w_center:isize = (self.width/2).to_int().unwrap();
+        let h_center:isize = (self.height/2).to_int().unwrap();
         //build a glider
-        self.set_cell(Cord{r:2,c:0});
-        self.set_cell(Cord{r:2,c:1});
-        self.set_cell(Cord{r:2,c:2});
-        self.set_cell(Cord{r:1,c:2});
-        self.set_cell(Cord{r:0,c:1});
+        self.set_cell(Cord{r:h_center + 2,c:w_center});
+        self.set_cell(Cord{r:h_center + 2,c:w_center + 1});
+        self.set_cell(Cord{r:h_center + 2,c:w_center + 2});
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 2});
+        self.set_cell(Cord{r:h_center,c:w_center + 1});
+    }
+
+    pub fn build_blinker(&mut self) {
+        /*build a Blinker*/
+        let w_center:isize = (self.width/2).to_int().unwrap();
+        let h_center:isize = (self.height/2).to_int().unwrap();
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 1});
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 2});
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 3});
+    }
+
+    pub fn build_toad(&mut self) {
+        /* build toad */
+        let w_center:isize = (self.width/2).to_int().unwrap();
+        let h_center:isize = (self.height/2).to_int().unwrap();
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 2});
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 3});
+        self.set_cell(Cord{r:h_center + 1,c:w_center + 4});
+        self.set_cell(Cord{r:h_center + 2,c:w_center + 1});
+        self.set_cell(Cord{r:h_center + 2,c:w_center + 2});
+        self.set_cell(Cord{r:h_center + 2,c:w_center + 3});
     }
 
     pub fn set_cell(&mut self,a:Cord) {
@@ -40,16 +63,6 @@ impl Board {
     }
 }
 
-/*
-pub fn build_glider(a:&mut BitvSet,width:usize,height:usize) {
-        //build a glider
-        set_cell(Cord{r:2,c:0},a,width,height);
-        set_cell(Cord{r:2,c:1},a,width,height);
-        set_cell(Cord{r:2,c:2},a,width,height);
-        set_cell(Cord{r:1,c:2},a,width,height);
-        set_cell(Cord{r:0,c:1},a,width,height);
-    }
-*/
 fn set_cell(a:Cord,input: &mut BitvSet, width:usize,height:usize) {
     input.insert(a.to_uint(width,height));
 }
@@ -100,17 +113,4 @@ pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usiz
         evolve_cell(c,&mut new.board, &old.board,width,height);
     }
 }
-    /*build a Blinker
-    set_cell(2,1,&mut alpha);
-    set_cell(2,2,&mut alpha);
-    set_cell(2,3,&mut alpha);*/
-
-    /* build toad
-    set_cell(1,2,&mut alpha);
-    set_cell(1,3,&mut alpha);
-    set_cell(1,4,&mut alpha);
-    set_cell(2,1,&mut alpha);
-    set_cell(2,2,&mut alpha);
-    set_cell(2,3,&mut alpha);*/
-
 

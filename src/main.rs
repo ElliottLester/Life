@@ -55,8 +55,14 @@ fn main() {
                 if key == KeyCode::Escape {
                     break;
                 }
-                if key == KeyCode::G{
+                if key == KeyCode::G {
                     beta.borrow_mut().deref_mut().build_glider();
+                }
+                if key == KeyCode::B {
+                    beta.borrow_mut().deref_mut().build_blinker();
+                }
+                if key == KeyCode::T {
+                    beta.borrow_mut().deref_mut().build_toad();
                 }
             }
             _ => {},
