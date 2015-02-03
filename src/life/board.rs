@@ -63,38 +63,34 @@ impl Board {
     }
 }
 
-fn set_cell(a:Cord,input: &mut BitvSet, width:usize,height:usize) {
-    input.insert(a.to_uint(width,height));
-}
+fn evolve_cell(a:Cord,alpha: &mut RefCell<Board> ,beta: &RefCell<Board>) {
+    let mut alpha = alpha.borrow_mut();
+    let beta = beta.borrow();
 
-fn get_cell(a:Cord,input: &BitvSet,width:usize,height:usize) -> bool {
-    input.contains(&a.to_uint(width,height))
-}
-
-
-fn evolve_cell(a:Cord,new: &mut BitvSet,old:&BitvSet,width:usize,height:usize) {
     let mut n:isize = 0;
     for r in range_inclusive(a.r-1,a.r+1) {
         for c in range_inclusive(a.c-1,a.c+1) {
-            if get_cell(Cord{r:r,c:c},old,width,height)  {
+            if beta.get_cell(Cord{r:r,c:c})  {
                  n += 1;
             }
         }
     }
-    let current = get_cell(a,old,width,height);
+    let current = beta.get_cell(a);
     if current {
         n -= 1;
     }
     let state = n == 3 || (n == 2 && current );
     if state {
-        set_cell(a,new,width,height);
+        alpha.set_cell(a);
     }
 }
 
 
 pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usize,stop:usize) {
-    let mut new = alpha.borrow_mut();
-    new.board.clear();
+    {
+        //clear the board for writing
+        alpha.borrow_mut().board.clear();
+    }
     let old = beta.borrow();
     let width = old.width;
     let height = old.height;
@@ -110,7 +106,7 @@ pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usiz
 
     for x in cells.iter() {
         let c = Cord::from_uint(x.to_uint().unwrap(),width,height);
-        evolve_cell(c,&mut new.board, &old.board,width,height);
+        evolve_cell(c,alpha, beta);
     }
 }
 
