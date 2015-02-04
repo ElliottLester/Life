@@ -39,16 +39,16 @@ fn main() {
 
     let render = init_sdl(WIDTH,HEIGHT);
 
-    let pool = init_threads(6,alpha.borrow().deref());
+    let pool = init_threads(4,alpha.borrow().deref());
 
     //main loop
     loop {
 
-       pool.dispatch_threads(alpha);
+        pool.dispatch_threads(alpha);
 
-       pool.compose_threads(beta);
+        pool.compose_threads(beta);
 
-       render_sdl(beta.borrow().deref(),&render,WIDTH,HEIGHT);
+        render_sdl(beta.borrow().deref(),&render,WIDTH,HEIGHT);
         match poll_event() {
             Quit{..} => break,
             KeyDown{keycode:key, ..} => {

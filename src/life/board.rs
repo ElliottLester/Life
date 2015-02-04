@@ -87,14 +87,14 @@ fn evolve_cell(a:Cord,alpha: &mut RefCell<Board> ,beta: &RefCell<Board>) {
 
 
 pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usize,stop:usize) {
-    {
-        //clear the board for writing
-        alpha.borrow_mut().board.clear();
-    }
+    let mut cells:BTreeSet<isize> = BTreeSet::new();
     let old = beta.borrow();
     let width = old.width;
     let height = old.height;
-    let mut cells:BTreeSet<isize> = BTreeSet::new();
+    {
+    let mut new = alpha.borrow_mut();
+    //need old state for comparison
+    //new.board.symmetric_difference_with(&old.board);
     for x in old.board.iter().filter(|i| (stop > *i && *i >= start)) {
         let c:Cord = Cord::from_uint(x,width,height);
         for r in range_inclusive(c.r-1,c.r+1) {
@@ -103,7 +103,8 @@ pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usiz
             }
         }
     }
-
+    new.board.clear();
+    }
     for x in cells.iter() {
         let c = Cord::from_uint(x.to_uint().unwrap(),width,height);
         evolve_cell(c,alpha, beta);
