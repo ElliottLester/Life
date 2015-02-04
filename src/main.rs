@@ -11,6 +11,7 @@ use std::time::Duration;
 use std::mem::swap;
 use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
+use std::num::ToPrimitive;
 
 use life::sdl::{quit_sdl,render_sdl,init_sdl};
 use life::board::Board;
@@ -35,40 +36,51 @@ fn main() {
 
     //create timer for ticks
     let mut timer = Timer::new().unwrap();
-    let periodic = timer.periodic(Duration::milliseconds(10));
 
     let render = init_sdl(WIDTH,HEIGHT);
 
     let pool = init_threads(4,alpha.borrow().deref());
 
+    let mut game_speed:usize = 1;
+
     //main loop
     loop {
+        if game_speed > 0 {
+            pool.dispatch_threads(alpha);
 
-        pool.dispatch_threads(alpha);
+            pool.compose_threads(beta);
 
-        pool.compose_threads(beta);
+            swap(alpha,beta);
+        }
 
-        render_sdl(beta.borrow().deref(),&render,WIDTH,HEIGHT);
+        render_sdl(alpha.borrow().deref(),&render,WIDTH,HEIGHT);
+
         match poll_event() {
             Quit{..} => break,
-            KeyDown{keycode:key, ..} => {
-                if key == KeyCode::Escape {
-                    break;
-                }
-                if key == KeyCode::G {
-                    beta.borrow_mut().deref_mut().build_glider();
-                }
-                if key == KeyCode::B {
-                    beta.borrow_mut().deref_mut().build_blinker();
-                }
-                if key == KeyCode::T {
-                    beta.borrow_mut().deref_mut().build_toad();
-                }
-            }
+            KeyDown{keycode:key, ..} => match key {
+                KeyCode::Escape =>
+                    break,
+                KeyCode::G =>
+                    alpha.borrow_mut().deref_mut().build_glider(),
+                KeyCode::B =>
+                    alpha.borrow_mut().deref_mut().build_blinker(),
+                KeyCode::T =>
+                    alpha.borrow_mut().deref_mut().build_toad(),
+                KeyCode::Comma =>
+                    if game_speed <= 5 {game_speed += 1},
+                KeyCode::Period =>
+                    if game_speed > 1 {game_speed -= 1},
+                KeyCode::Space => {
+                    match game_speed {
+                        0 => game_speed = 1,
+                        _ => game_speed = 0,
+                    }},
+
+                _ => (),
+            },
             _ => {},
         }
-        swap(alpha,beta);
-        let _ = periodic.recv();
+        timer.sleep(Duration::milliseconds((16*game_speed).to_i64().unwrap()));
     }
     quit_sdl();
 }
