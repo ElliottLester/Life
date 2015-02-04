@@ -16,9 +16,10 @@ use std::num::ToPrimitive;
 use life::sdl::{quit_sdl,render_sdl,init_sdl};
 use life::board::Board;
 use life::thread::{init_threads};
+use life::cord::Cord;
 
 use sdl2::event::poll_event;
-use sdl2::event::Event::{Quit, KeyDown};
+use sdl2::event::Event::{Quit, KeyDown, MouseButtonDown};
 use sdl2::keycode::KeyCode;
 
 
@@ -41,46 +42,53 @@ fn main() {
 
     let pool = init_threads(4,alpha.borrow().deref());
 
-    let mut game_speed:usize = 1;
+    let mut game_speed:usize = 2;
 
     //main loop
-    loop {
-        if game_speed > 0 {
+    'main: loop {
+        if game_speed > 1 {
             pool.dispatch_threads(alpha);
 
             pool.compose_threads(beta);
 
             swap(alpha,beta);
+
         }
 
         render_sdl(alpha.borrow().deref(),&render,WIDTH,HEIGHT);
 
-        match poll_event() {
-            Quit{..} => break,
-            KeyDown{keycode:key, ..} => match key {
-                KeyCode::Escape =>
-                    break,
-                KeyCode::G =>
-                    alpha.borrow_mut().deref_mut().build_glider(),
-                KeyCode::B =>
-                    alpha.borrow_mut().deref_mut().build_blinker(),
-                KeyCode::T =>
-                    alpha.borrow_mut().deref_mut().build_toad(),
-                KeyCode::Comma =>
-                    if game_speed <= 5 {game_speed += 1},
-                KeyCode::Period =>
-                    if game_speed > 1 {game_speed -= 1},
-                KeyCode::Space => {
-                    match game_speed {
-                        0 => game_speed = 1,
-                        _ => game_speed = 0,
-                    }},
+        'step: for _ in 0..game_speed { 
+            match poll_event() {
+                Quit{..} => break,
+                MouseButtonDown{x,y,..} =>
+                {   let x_size = (x/4).to_int().unwrap();
+                    let y_size = (y/4).to_int().unwrap();
+                    alpha.borrow_mut().deref_mut().set_cell(Cord::new(y_size,x_size))},
+                KeyDown{keycode:key, ..} => match key {
+                    KeyCode::Escape =>
+                        break 'main,
+                    KeyCode::G =>
+                        alpha.borrow_mut().deref_mut().build_glider(),
+                    KeyCode::B =>
+                        alpha.borrow_mut().deref_mut().build_blinker(),
+                    KeyCode::T =>
+                        alpha.borrow_mut().deref_mut().build_toad(),
+                    KeyCode::Comma =>
+                        if game_speed < 25 && game_speed > 1 {game_speed += 1},
+                    KeyCode::Period =>
+                        if game_speed > 2 {game_speed -= 1},
+                    KeyCode::Space => {
+                        match game_speed {
+                            1 => game_speed = 2,
+                            _ => game_speed = 1,
+                        }},
 
+                    _ => (),
+                },
                 _ => (),
-            },
-            _ => {},
+            }
+            timer.sleep(Duration::milliseconds(10));
         }
-        timer.sleep(Duration::milliseconds((16*game_speed).to_i64().unwrap()));
     }
     quit_sdl();
 }
