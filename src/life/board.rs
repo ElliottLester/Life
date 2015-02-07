@@ -57,6 +57,10 @@ impl Board {
     pub fn set_cell(&mut self,a:Cord) {
         self.board.insert(a.to_uint(self.width,self.height));
     }
+    
+    pub fn clear_cell(&mut self,a:Cord) {
+        self.board.remove(&a.to_uint(self.width,self.height));
+    }
 
     pub fn get_cell(&self,a:Cord) -> bool{
         self.board.contains(&a.to_uint(self.width,self.height))

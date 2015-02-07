@@ -18,9 +18,10 @@ use life::board::Board;
 use life::thread::{init_threads};
 use life::cord::Cord;
 
-use sdl2::event::poll_event;
-use sdl2::event::Event::{Quit, KeyDown, MouseButtonDown};
+use sdl2::event::{poll_event, Event};
+use sdl2::event::Event::{Quit, KeyDown, MouseMotion, MouseButtonDown};
 use sdl2::keycode::KeyCode;
+use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
 
 
 
@@ -55,15 +56,26 @@ fn main() {
 
         }
 
-        render_sdl(alpha.borrow().deref(),&render,WIDTH,HEIGHT);
-
-        'step: for _ in 0..game_speed { 
+        'event: loop { //needed to empty the event queue
             match poll_event() {
                 Quit{..} => break,
-                MouseButtonDown{x,y,..} =>
-                {   let x_size = (x/4).to_int().unwrap();
-                    let y_size = (y/4).to_int().unwrap();
-                    alpha.borrow_mut().deref_mut().set_cell(Cord::new(y_size,x_size))},
+
+                MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => {
+                    alpha.borrow_mut().deref_mut()
+                    .set_cell(mouse_to_board(x,y,&render))},
+
+                MouseMotion {mousestate:RIGHTMOUSESTATE,x,y,..} => {
+                    alpha.borrow_mut().deref_mut()
+                    .clear_cell(mouse_to_board(x,y,&render))},
+
+                MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => {
+                     alpha.borrow_mut().deref_mut()
+                    .set_cell(mouse_to_board(x,y,&render))},
+
+                MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => {
+                     alpha.borrow_mut().deref_mut()
+                    .clear_cell(mouse_to_board(x,y,&render))},
+
                 KeyDown{keycode:key, ..} => match key {
                     KeyCode::Escape =>
                         break 'main,
@@ -85,12 +97,25 @@ fn main() {
 
                     _ => (),
                 },
-                _ => (),
+
+                //the event loop is empty break
+                Event::None => break 'event,
+
+                //there was an unmatch event but there are other events to process
+                _ => ()
             }
-            timer.sleep(Duration::milliseconds(10));
         }
+        render_sdl(alpha.borrow().deref(),&render,WIDTH,HEIGHT);
+        timer.sleep(Duration::milliseconds((10*game_speed.to_i64().unwrap())));
     }
     quit_sdl();
+}
+
+fn mouse_to_board(x:i32, y:i32,render:&sdl2::render::Renderer) -> Cord {
+    let (x_scale,y_scale) = render.drawer().get_scale();
+    let x_size = (x.to_f32().unwrap()/x_scale).to_int().unwrap();
+    let y_size = (y.to_f32().unwrap()/y_scale).to_int().unwrap();
+    Cord::new(y_size,x_size)
 }
 
 #[test]
