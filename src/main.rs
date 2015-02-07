@@ -24,9 +24,8 @@ use sdl2::keycode::KeyCode;
 use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
 
 
-
-static WIDTH: usize = 256;
-static HEIGHT: usize = 192;
+static WIDTH: usize = 128;
+static HEIGHT: usize = 96;
 
 fn main() {
 
@@ -53,8 +52,7 @@ fn main() {
             pool.compose_threads(beta);
 
             swap(alpha,beta);
-
-        }
+        } 
 
         'event: loop { //needed to empty the event queue
             match poll_event() {
@@ -105,7 +103,7 @@ fn main() {
                 _ => ()
             }
         }
-        render_sdl(alpha.borrow().deref(),&render,WIDTH,HEIGHT);
+        render_sdl(alpha.borrow().deref(),&render,game_speed);
         timer.sleep(Duration::milliseconds((10*game_speed.to_i64().unwrap())));
     }
     quit_sdl();
