@@ -87,6 +87,8 @@ fn main() {
                         if game_speed < 25 && game_speed > 1 {game_speed += 1},
                     KeyCode::Period =>
                         if game_speed > 2 {game_speed -= 1},
+                    KeyCode::C =>
+                        alpha.borrow_mut().deref_mut().board.clear(),
                     KeyCode::Space => {
                         match game_speed {
                             1 => game_speed = 2,
