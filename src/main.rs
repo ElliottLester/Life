@@ -9,12 +9,10 @@ mod life;
 use std::old_io::Timer;
 use std::time::Duration;
 use std::mem::swap;
-use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::num::ToPrimitive;
 
 use life::sdl::{quit_sdl,render_sdl,init_sdl};
-use life::board::Board;
 use life::thread::{init_threads};
 use life::cord::Cord;
 use life::game::GameState;
@@ -83,7 +81,7 @@ fn main() {
                     KeyCode::Period =>
                         if game.game_speed <= 25 {game.game_speed += 1},
                     KeyCode::C =>
-                        alpha.borrow_mut().deref_mut().board.clear(), 
+                        game.alpha.borrow_mut().deref_mut().board.clear(), 
                     KeyCode::Space => 
                         game.pause = !game.pause,
 

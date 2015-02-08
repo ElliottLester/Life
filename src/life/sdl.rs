@@ -1,10 +1,8 @@
 use std::num::ToPrimitive;
-use std::cell::RefCell;
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref};
 
 
 use life::cord::Cord;
-use life::board::Board;
 use life::game::GameState;
 
 

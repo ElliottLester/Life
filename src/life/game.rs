@@ -1,5 +1,4 @@
-use std::cell::{RefCell,Ref};
-use std::ops::{Deref, DerefMut};
+use std::cell::{RefCell};
 
 use life::board::Board;
 
@@ -20,9 +19,4 @@ impl<'a> GameState<'a> {
         }
     }
 
-    pub fn a<'b>(&'b self) -> &'b Board {
-        let c = self.alpha.borrow().deref();
-        c
-
-    }
 }
