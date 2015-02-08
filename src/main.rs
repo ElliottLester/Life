@@ -27,9 +27,9 @@ static WIDTH: usize = 128;
 static HEIGHT: usize = 96;
 
 fn main() {
-    
+
     let mut game = GameState::new(WIDTH,HEIGHT);
-    
+
     //create timer for ticks
     let mut timer = Timer::new().unwrap();
 
@@ -45,7 +45,7 @@ fn main() {
             pool.compose_threads(&game.beta);
 
             swap(&mut game.alpha,&mut game.beta);
-        } 
+        }
 
         'event: loop { //needed to empty the event queue
             match poll_event() {
@@ -77,12 +77,12 @@ fn main() {
                     KeyCode::T =>
                         game.alpha.borrow_mut().deref_mut().build_toad(),
                     KeyCode::Comma =>
-                        if game.game_speed > 1 {game.game_speed -= 1 },
+                        if game.game_speed > 0 {game.game_speed -= 25 },
                     KeyCode::Period =>
-                        if game.game_speed <= 25 {game.game_speed += 1},
+                        if game.game_speed < 1000 {game.game_speed += 25},
                     KeyCode::C =>
-                        game.alpha.borrow_mut().deref_mut().board.clear(), 
-                    KeyCode::Space => 
+                        game.alpha.borrow_mut().deref_mut().board.clear(),
+                    KeyCode::Space =>
                         game.pause = !game.pause,
 
                     _ => (),
@@ -96,7 +96,7 @@ fn main() {
             }
         }
         render_sdl(&game,&render);
-        timer.sleep(Duration::milliseconds((1000/game.game_speed).to_i64().unwrap()));
+        timer.sleep(Duration::milliseconds((1000 - game.game_speed).to_i64().unwrap()));
     }
     quit_sdl();
 }
