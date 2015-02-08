@@ -1,8 +1,11 @@
 use std::num::ToPrimitive;
+use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
+
 
 use life::cord::Cord;
-
 use life::board::Board;
+use life::game::GameState;
 
 
 use sdl2;
@@ -38,21 +41,21 @@ pub fn init_sdl(width:usize,height:usize) -> sdl2::render::Renderer {
     renderer
 }
 
-pub fn render_sdl(input: &Board,renderer: &sdl2::render::Renderer,game_speed:usize) {
+pub fn render_sdl(game: &GameState,renderer: &sdl2::render::Renderer) {
 
     let (_,x,y) = sdl2::mouse::get_mouse_state();
     let cursor = mouse_to_board(x,y,renderer);
     
     let mut drawer = renderer.drawer();
 
-    if game_speed == 1 {
+    if game.pause {
         let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 255, 0));
         drawer.draw_point(cursor);
     }
 
     let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
-    for x in input.board.iter() {
-        let c:Cord = Cord::from_uint(x,input.width,input.height);
+    for x in game.alpha.borrow().deref().board.iter() {
+        let c:Cord = Cord::from_uint(x,game.alpha.borrow().deref().width,game.alpha.borrow().deref().height);
         let r = c.r.to_i32().unwrap();
         let c = c.c.to_i32().unwrap();
         let _ = drawer.draw_point(Point::new(c,r));

@@ -17,6 +17,7 @@ use life::sdl::{quit_sdl,render_sdl,init_sdl};
 use life::board::Board;
 use life::thread::{init_threads};
 use life::cord::Cord;
+use life::game::GameState;
 
 use sdl2::event::{poll_event, Event};
 use sdl2::event::Event::{Quit, KeyDown, MouseMotion, MouseButtonDown};
@@ -28,30 +29,24 @@ static WIDTH: usize = 128;
 static HEIGHT: usize = 96;
 
 fn main() {
-
-    //allocate two boards
-    let a = Board::new(WIDTH,HEIGHT);
-    let b = Board::new(WIDTH,HEIGHT);
-    let alpha = &mut RefCell::new(a);
-    let beta  = &mut RefCell::new(b);
-
+    
+    let mut game = GameState::new(WIDTH,HEIGHT);
+    
     //create timer for ticks
     let mut timer = Timer::new().unwrap();
 
     let render = init_sdl(WIDTH,HEIGHT);
 
-    let pool = init_threads(4,alpha.borrow().deref());
-
-    let mut game_speed:usize = 2;
+    let pool = init_threads(4,game.alpha.borrow().deref());
 
     //main loop
     'main: loop {
-        if game_speed > 1 {
-            pool.dispatch_threads(alpha);
+        if !game.pause {
+            pool.dispatch_threads(&game.alpha);
 
-            pool.compose_threads(beta);
+            pool.compose_threads(&game.beta);
 
-            swap(alpha,beta);
+            swap(&mut game.alpha,&mut game.beta);
         } 
 
         'event: loop { //needed to empty the event queue
@@ -59,41 +54,38 @@ fn main() {
                 Quit{..} => break,
 
                 MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => {
-                    alpha.borrow_mut().deref_mut()
+                    game.alpha.borrow_mut().deref_mut()
                     .set_cell(mouse_to_board(x,y,&render))},
 
                 MouseMotion {mousestate:RIGHTMOUSESTATE,x,y,..} => {
-                    alpha.borrow_mut().deref_mut()
+                    game.alpha.borrow_mut().deref_mut()
                     .clear_cell(mouse_to_board(x,y,&render))},
 
                 MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => {
-                     alpha.borrow_mut().deref_mut()
+                     game.alpha.borrow_mut().deref_mut()
                     .set_cell(mouse_to_board(x,y,&render))},
 
                 MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => {
-                     alpha.borrow_mut().deref_mut()
+                     game.alpha.borrow_mut().deref_mut()
                     .clear_cell(mouse_to_board(x,y,&render))},
 
                 KeyDown{keycode:key, ..} => match key {
                     KeyCode::Escape =>
                         break 'main,
                     KeyCode::G =>
-                        alpha.borrow_mut().deref_mut().build_glider(),
+                        game.alpha.borrow_mut().deref_mut().build_glider(),
                     KeyCode::B =>
-                        alpha.borrow_mut().deref_mut().build_blinker(),
+                        game.alpha.borrow_mut().deref_mut().build_blinker(),
                     KeyCode::T =>
-                        alpha.borrow_mut().deref_mut().build_toad(),
+                        game.alpha.borrow_mut().deref_mut().build_toad(),
                     KeyCode::Comma =>
-                        if game_speed < 25 && game_speed > 1 {game_speed += 1},
+                        if game.game_speed > 1 {game.game_speed -= 1 },
                     KeyCode::Period =>
-                        if game_speed > 2 {game_speed -= 1},
+                        if game.game_speed <= 25 {game.game_speed += 1},
                     KeyCode::C =>
-                        alpha.borrow_mut().deref_mut().board.clear(),
-                    KeyCode::Space => {
-                        match game_speed {
-                            1 => game_speed = 2,
-                            _ => game_speed = 1,
-                        }},
+                        alpha.borrow_mut().deref_mut().board.clear(), 
+                    KeyCode::Space => 
+                        game.pause = !game.pause,
 
                     _ => (),
                 },
@@ -105,8 +97,8 @@ fn main() {
                 _ => ()
             }
         }
-        render_sdl(alpha.borrow().deref(),&render,game_speed);
-        timer.sleep(Duration::milliseconds((10*game_speed.to_i64().unwrap())));
+        render_sdl(&game,&render);
+        timer.sleep(Duration::milliseconds((1000/game.game_speed).to_i64().unwrap()));
     }
     quit_sdl();
 }
