@@ -23,8 +23,8 @@ use sdl2::keycode::KeyCode;
 use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
 
 
-static WIDTH: usize = 128;
-static HEIGHT: usize = 96;
+static WIDTH: usize = 200;
+static HEIGHT: usize = 125;
 
 fn main() {
 
@@ -77,7 +77,7 @@ fn main() {
                     KeyCode::T =>
                         game.alpha.borrow_mut().deref_mut().build_toad(),
                     KeyCode::Comma =>
-                        if game.game_speed > 0 {game.game_speed -= 25 },
+                        if game.game_speed > 500 {game.game_speed -= 25 },
                     KeyCode::Period =>
                         if game.game_speed < 1000 {game.game_speed += 25},
                     KeyCode::C =>

@@ -13,7 +13,7 @@ impl<'a> GameState<'a> {
     pub fn new(width:usize,height:usize) -> GameState<'a>{
         GameState {
         pause: false,
-        game_speed: 500,
+        game_speed: 700,
         alpha:RefCell::new(Board::new(width,height)),
         beta:RefCell::new(Board::new(width,height)),
         }
