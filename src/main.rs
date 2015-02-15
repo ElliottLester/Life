@@ -33,7 +33,7 @@ fn main() {
     //create timer for ticks
     let mut timer = Timer::new().unwrap();
 
-    let render = init_sdl(WIDTH,HEIGHT);
+    let mut dispcontext = init_sdl(WIDTH,HEIGHT);
 
     let pool = init_threads(4,game.alpha.borrow().deref());
 
@@ -50,7 +50,7 @@ fn main() {
         'event: loop { //needed to empty the event queue
             match poll_event() {
                 Quit{..} => break,
-
+                /*
                 MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => {
                     game.alpha.borrow_mut().deref_mut()
                     .set_cell(mouse_to_board(x,y,&render))},
@@ -66,7 +66,7 @@ fn main() {
                 MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => {
                      game.alpha.borrow_mut().deref_mut()
                     .clear_cell(mouse_to_board(x,y,&render))},
-
+                */
                 KeyDown{keycode:key, ..} => match key {
                     KeyCode::Escape =>
                         break 'main,
@@ -95,19 +95,19 @@ fn main() {
                 _ => ()
             }
         }
-        render_sdl(&game,&render);
+        render_sdl(&game,&mut dispcontext);
         timer.sleep(Duration::milliseconds((1000 - game.game_speed).to_i64().unwrap()));
     }
     quit_sdl();
 }
-
+/*
 fn mouse_to_board(x:i32, y:i32,render:&sdl2::render::Renderer) -> Cord {
     let (x_scale,y_scale) = render.drawer().get_scale();
     let x_size = (x.to_f32().unwrap()/x_scale).to_int().unwrap();
     let y_size = (y.to_f32().unwrap()/y_scale).to_int().unwrap();
     Cord::new(y_size,x_size)
 }
-
+*/
 #[test]
 fn test_board() {
     for row in range_inclusive(-1,HEIGHT) {

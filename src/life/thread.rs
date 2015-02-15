@@ -32,7 +32,10 @@ impl ThreadPool {
             beta_mut.board.clear();
 
             for _ in 0us..self.threads {
-                beta_mut.board.union_with(&(self.master_rx.recv().unwrap().borrow().deref().board));
+                let a1 = self.master_rx.recv().unwrap();
+                let a2 = a1.borrow();
+                let ref a3 = a2.deref().board;
+                beta_mut.board.union_with(a3);
             }
         }
     }
