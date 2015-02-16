@@ -1,10 +1,16 @@
 use std::cell::{RefCell};
+use std::num::ToPrimitive;
 
 use life::board::Board;
+use life::cord::Cord;
+
+use sdl2::rect::Rect;
 
 pub struct GameState<'a> {
     pub pause       :bool,
     pub game_speed  :usize,
+    pub width       :usize,
+    pub height      :usize,
     pub alpha       :RefCell<Board>,
     pub beta        :RefCell<Board>,
 }
@@ -12,11 +18,39 @@ pub struct GameState<'a> {
 impl<'a> GameState<'a> {
     pub fn new(width:usize,height:usize) -> GameState<'a>{
         GameState {
-        pause: false,
-        game_speed: 700,
-        alpha:RefCell::new(Board::new(width,height)),
-        beta:RefCell::new(Board::new(width,height)),
+        pause       :false,
+        game_speed  :700,
+        width       :width,
+        height      :height,
+        alpha       :RefCell::new(Board::new(width,height)),
+        beta        :RefCell::new(Board::new(width,height)),
         }
     }
+    
+    pub fn mouse_to_board(&self,x:i32, y:i32,vp:Rect) -> usize {
+        let width = self.width.to_i32().unwrap();
+        let height = self.height.to_i32().unwrap();
 
+        let x_scale:f32 = vp.w.to_f32().unwrap() / width.to_f32().unwrap();
+        let y_scale:f32 = vp.h.to_f32().unwrap() / height.to_f32().unwrap();
+
+        let x_size = (x.to_f32().unwrap()/x_scale).to_i32().unwrap();
+        let y_size = (y.to_f32().unwrap()/y_scale).to_i32().unwrap();
+
+        (y_size*width + x_size).to_uint().unwrap()
+    }
+
+    pub fn mouse_to_cord(&self,x:i32, y:i32,vp:Rect) -> Cord {
+        let width = self.width.to_i32().unwrap();
+        let height = self.height.to_i32().unwrap();
+
+        let x_scale:f32 = vp.w.to_f32().unwrap() / width.to_f32().unwrap();
+        let y_scale:f32 = vp.h.to_f32().unwrap() / height.to_f32().unwrap();
+
+        let x_size = (x.to_f32().unwrap()/x_scale).to_int().unwrap();
+        let y_size = (y.to_f32().unwrap()/y_scale).to_int().unwrap();
+
+        Cord::new(y_size,x_size)
+
+    }
 }
