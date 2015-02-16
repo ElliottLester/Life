@@ -1,24 +1,32 @@
-use std::num::ToPrimitive;
 use std::ops::{Deref};
 
 
-use life::cord::Cord;
 use life::game::GameState;
-
 
 use sdl2;
 use sdl2::rect::{Point,Rect};
 use sdl2::surface::Surface;
+use sdl2::pixels::Color::RGB;
+
+pub fn is_enclosed(rect:Rect,point:Point) -> bool {
+    if rect.x <= point.x && point.x <= (rect.x + rect.w) {
+        if rect.y <= point.y && point.y <= (rect.y + rect.h) {
+            return true
+        }
+    }
+    return false
+}
 
 pub struct DispContext {
     renderer:sdl2::render::Renderer,
     surf_board:Surface,
     surf_menu:Surface,
-    vp_board:Rect,
-    vp_menu:Rect,
+    pub vp_board:Rect,
+    pub vp_menu:Rect,
 }
 
 pub fn init_sdl(width:usize,height:usize) -> DispContext {
+    let menu_height = 100;
     //SDL2 Init
     sdl2::init(sdl2::INIT_VIDEO);
 
@@ -34,32 +42,35 @@ pub fn init_sdl(width:usize,height:usize) -> DispContext {
         Err(err) => panic!(format!("failed to create renderer: {}", err))
     };
     
-    let vp_board = Rect::new(0,0,window_width,(window_height-100));
-    let vp_menu  = Rect::new(0,(window_height-100),window_width,100);
+    let vp_board = Rect::new(0,0,window_width,(window_height-menu_height));
+    let vp_menu  = Rect::new(0,(window_height-menu_height),window_width,menu_height);
 
     let surf_board = Surface::new(sdl2::surface::RLEACCEL,width as i32,height as i32,24,0,0,0,0).unwrap();
     let surf_menu  = Surface::new(sdl2::surface::RLEACCEL,vp_menu.w ,vp_menu.h ,24,0,0,0,0).unwrap();
 
-    {
-        let mut drawer = renderer.drawer();
-
-        let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(128, 128, 128));
-        let _ = drawer.clear();
-        let _ = drawer.present();
-    }
     DispContext{renderer:renderer,surf_board:surf_board,surf_menu:surf_menu,vp_board:vp_board,vp_menu:vp_menu}
 }
 
 pub fn render_sdl(game: &GameState,dispcontext: &mut DispContext) {
 
+    let (_,x,y) = sdl2::mouse::get_mouse_state();
 
-    //let (_,x,y) = sdl2::mouse::get_mouse_state();
-    //let cursor = mouse_to_board(x,y,renderer);
+    let cursor = Point::new(x,y);
 
-    dispcontext.surf_board.with_lock(|buffer: &mut[u8]| {
-       for x in 0..(buffer.iter().len()) {
-            buffer[x] = 255 as u8;
+    let _ = dispcontext.surf_board.fill_rect(None, RGB(255,255,255));
+
+    if game.pause {
+        if is_enclosed(dispcontext.vp_board,cursor) {
+            let offset = game.mouse_to_board(x,y,dispcontext.vp_board)*3;
+            dispcontext.surf_board.with_lock(|buffer: &mut[u8]| {
+                buffer[offset + 0] = 0 as u8;
+                buffer[offset + 1] = 255 as u8;
+                buffer[offset + 2] = 0 as u8;
+            })
         }
+    }
+    
+    dispcontext.surf_board.with_lock(|buffer: &mut[u8]| {
         for x in game.alpha.borrow().deref().board.iter() {
             let offset = x*3;
             buffer[offset + 0] = 0 as u8;
@@ -68,7 +79,7 @@ pub fn render_sdl(game: &GameState,dispcontext: &mut DispContext) {
         }
     });
     
-    let mut tex_board = dispcontext.renderer.create_texture_from_surface(&dispcontext.surf_board).unwrap();
+    let tex_board = dispcontext.renderer.create_texture_from_surface(&dispcontext.surf_board).unwrap();
 
     let mut drawer = dispcontext.renderer.drawer();
 
@@ -76,30 +87,7 @@ pub fn render_sdl(game: &GameState,dispcontext: &mut DispContext) {
     drawer.clear();
     drawer.copy(&tex_board,None,Some(dispcontext.vp_board));
     drawer.present();
-    /*
-    if game.pause {
-        let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 255, 0));
-        drawer.draw_point(cursor);
-    }
-
-    let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
-    for x in game.alpha.borrow().deref().board.iter() {
-        let c:Cord = Cord::from_uint(x,game.alpha.borrow().deref().width,game.alpha.borrow().deref().height);
-        let r = c.r.to_i32().unwrap();
-        let c = c.c.to_i32().unwrap();
-        let _ = drawer.draw_point(Point::new(c,r));
-    }
-    drawer.present(); 
-    */
-    let _ = drawer.set_draw_color(sdl2::pixels::Color::RGB(255, 255, 255));
-    drawer.clear();
 }                        
 pub fn quit_sdl() {
     sdl2::quit();
 }
-fn mouse_to_board(x:i32, y:i32,render:&sdl2::render::Renderer) -> Point {
-     let (x_scale,y_scale) = render.drawer().get_scale();
-     let x_size = (x.to_f32().unwrap()/x_scale).to_i32().unwrap();
-     let y_size = (y.to_f32().unwrap()/y_scale).to_i32().unwrap();
-     Point::new(x_size,y_size)
- }
