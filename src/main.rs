@@ -12,11 +12,11 @@ use std::mem::swap;
 use std::ops::{Deref, DerefMut};
 use std::num::ToPrimitive;
 
-use life::sdl::{quit_sdl,render_sdl,init_sdl};
+use life::sdl::{quit_sdl,render_sdl,init_sdl,is_enclosed};
 use life::thread::{init_threads};
-use life::cord::Cord;
 use life::game::GameState;
 
+use sdl2::rect::Point;
 use sdl2::event::{poll_event, Event};
 use sdl2::event::Event::{Quit, KeyDown, MouseMotion, MouseButtonDown};
 use sdl2::keycode::KeyCode;
@@ -50,23 +50,27 @@ fn main() {
         'event: loop { //needed to empty the event queue
             match poll_event() {
                 Quit{..} => break,
-                /*
-                MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => {
+                
+                MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => 
+                if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                     game.alpha.borrow_mut().deref_mut()
-                    .set_cell(mouse_to_board(x,y,&render))},
+                    .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
-                MouseMotion {mousestate:RIGHTMOUSESTATE,x,y,..} => {
+                MouseMotion {mousestate:RIGHTMOUSESTATE,x,y,..} => 
+                if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                     game.alpha.borrow_mut().deref_mut()
-                    .clear_cell(mouse_to_board(x,y,&render))},
+                    .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
-                MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => {
+                MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => 
+               if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                      game.alpha.borrow_mut().deref_mut()
-                    .set_cell(mouse_to_board(x,y,&render))},
+                    .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
-                MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => {
+                MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => 
+                if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                      game.alpha.borrow_mut().deref_mut()
-                    .clear_cell(mouse_to_board(x,y,&render))},
-                */
+                    .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
+                
                 KeyDown{keycode:key, ..} => match key {
                     KeyCode::Escape =>
                         break 'main,
@@ -96,18 +100,15 @@ fn main() {
             }
         }
         render_sdl(&game,&mut dispcontext);
-        timer.sleep(Duration::milliseconds((1000 - game.game_speed).to_i64().unwrap()));
+        if game.pause {
+            timer.sleep(Duration::milliseconds(25));
+        } else {
+            timer.sleep(Duration::milliseconds((1000 - game.game_speed).to_i64().unwrap()));
+        }
     }
     quit_sdl();
 }
-/*
-fn mouse_to_board(x:i32, y:i32,render:&sdl2::render::Renderer) -> Cord {
-    let (x_scale,y_scale) = render.drawer().get_scale();
-    let x_size = (x.to_f32().unwrap()/x_scale).to_int().unwrap();
-    let y_size = (y.to_f32().unwrap()/y_scale).to_int().unwrap();
-    Cord::new(y_size,x_size)
-}
-*/
+
 #[test]
 fn test_board() {
     for row in range_inclusive(-1,HEIGHT) {
