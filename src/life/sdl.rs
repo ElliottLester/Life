@@ -17,22 +17,25 @@ pub fn is_enclosed(rect:Rect,point:Point) -> bool {
     return false
 }
 
-pub struct DispContext {
-    renderer:sdl2::render::Renderer,
-    surf_board:Surface,
-    surf_menu:Surface,
+pub struct GameContext<'a> {
+    renderer:sdl2::render::Renderer<'a>,
+    surf_board:Surface<'a>,
+    surf_menu:Surface<'a>,
     pub vp_board:Rect,
     pub vp_menu:Rect,
 }
 
-pub fn init_sdl(width:usize,height:usize) -> DispContext {
+pub fn init_sdl<'a>(width:usize,height:usize) -> (sdl2::Sdl,GameContext<'a>) {
     let menu_height = 100;
     //SDL2 Init
-    sdl2::init(sdl2::INIT_VIDEO);
+    let ctx:sdl2::Sdl = match sdl2::init(sdl2::INIT_VIDEO) {
+        Ok(ctx) => ctx,
+        Err(err) => panic!("Failed to start SDL2: {}",err),
+    };
 
     let (window_width,window_height):(i32,i32) = (800,600);
 
-    let window = match sdl2::video::Window::new("rust-sdl2 demo: Video", sdl2::video::WindowPos::PosCentered, sdl2::video::WindowPos::PosCentered, window_width, window_height, sdl2::video::OPENGL) {
+    let window = match sdl2::video::Window::new(&ctx,"rust-sdl2 demo: Video", sdl2::video::WindowPos::PosCentered, sdl2::video::WindowPos::PosCentered, window_width, window_height, sdl2::video::OPENGL) {
         Ok(window) => window,
         Err(err) => panic!(format!("failed to create window: {}", err))
     };
@@ -48,10 +51,10 @@ pub fn init_sdl(width:usize,height:usize) -> DispContext {
     let surf_board = Surface::new(sdl2::surface::RLEACCEL,width as i32,height as i32,24,0,0,0,0).unwrap();
     let surf_menu  = Surface::new(sdl2::surface::RLEACCEL,vp_menu.w ,vp_menu.h ,24,0,0,0,0).unwrap();
 
-    DispContext{renderer:renderer,surf_board:surf_board,surf_menu:surf_menu,vp_board:vp_board,vp_menu:vp_menu}
+    (ctx,GameContext{renderer:renderer,surf_board:surf_board,surf_menu:surf_menu,vp_board:vp_board,vp_menu:vp_menu})
 }
 
-pub fn render_sdl(game: &GameState,dispcontext: &mut DispContext) {
+pub fn render_sdl(game: &GameState,dispcontext: &mut GameContext) {
 
     let (_,x,y) = sdl2::mouse::get_mouse_state();
 
@@ -88,6 +91,4 @@ pub fn render_sdl(game: &GameState,dispcontext: &mut DispContext) {
     drawer.copy(&tex_board,None,Some(dispcontext.vp_board));
     drawer.present();
 }                        
-pub fn quit_sdl() {
-    sdl2::quit();
-}
+

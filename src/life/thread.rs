@@ -1,6 +1,6 @@
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
-use std::thread::Thread;
+use std::thread;
 
 use std::cell::RefCell;
 use std::ops::Deref;
@@ -59,7 +59,7 @@ pub fn init_threads(threads:usize, input: &Board) -> ThreadPool {
         let (thread_tx,thread_rx): (Sender<RefCell<Board>>,Receiver<RefCell<Board>>) = mpsc::channel();
         workers.push(thread_tx);
         let master_tx = master_tx.clone();
-        Thread::spawn(move|| {
+        thread::spawn(move|| {
             let id = i;
             let (start,end) = (i*work_range,(i*work_range)+work_range);
             //local working space

@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet,BitvSet};
+use std::collections::{BTreeSet,BitSet};
 use std::iter::{range_inclusive};
 use std::cell::RefCell;
 use std::num::ToPrimitive;
@@ -10,7 +10,7 @@ pub struct Board {
     pub width:usize,
     pub height:usize,
     pub total:usize,
-    pub board : BitvSet,
+    pub board : BitSet,
 }
 
 impl Board {
@@ -19,12 +19,12 @@ impl Board {
             width: width,
             height: height,
             total: width*height,
-            board: BitvSet::with_capacity(width*height),
+            board: BitSet::with_capacity(width*height),
         }
     }
     pub fn build_glider(&mut self) {
-        let w_center:isize = (self.width/2).to_int().unwrap();
-        let h_center:isize = (self.height/2).to_int().unwrap();
+        let w_center:isize = (self.width/2).to_isize().unwrap();
+        let h_center:isize = (self.height/2).to_isize().unwrap();
         //build a glider
         self.set_cell(Cord{r:h_center + 2,c:w_center});
         self.set_cell(Cord{r:h_center + 2,c:w_center + 1});
@@ -35,8 +35,8 @@ impl Board {
 
     pub fn build_blinker(&mut self) {
         /*build a Blinker*/
-        let w_center:isize = (self.width/2).to_int().unwrap();
-        let h_center:isize = (self.height/2).to_int().unwrap();
+        let w_center:isize = (self.width/2).to_isize().unwrap();
+        let h_center:isize = (self.height/2).to_isize().unwrap();
         self.set_cell(Cord{r:h_center + 1,c:w_center + 1});
         self.set_cell(Cord{r:h_center + 1,c:w_center + 2});
         self.set_cell(Cord{r:h_center + 1,c:w_center + 3});
@@ -44,8 +44,8 @@ impl Board {
 
     pub fn build_toad(&mut self) {
         /* build toad */
-        let w_center:isize = (self.width/2).to_int().unwrap();
-        let h_center:isize = (self.height/2).to_int().unwrap();
+        let w_center:isize = (self.width/2).to_isize().unwrap();
+        let h_center:isize = (self.height/2).to_isize().unwrap();
         self.set_cell(Cord{r:h_center + 1,c:w_center + 2});
         self.set_cell(Cord{r:h_center + 1,c:w_center + 3});
         self.set_cell(Cord{r:h_center + 1,c:w_center + 4});
@@ -55,15 +55,15 @@ impl Board {
     }
 
     pub fn set_cell(&mut self,a:Cord) {
-        self.board.insert(a.to_uint(self.width,self.height));
+        self.board.insert(a.to_usize(self.width,self.height));
     }
     
     pub fn clear_cell(&mut self,a:Cord) {
-        self.board.remove(&a.to_uint(self.width,self.height));
+        self.board.remove(&a.to_usize(self.width,self.height));
     }
 
     pub fn get_cell(&self,a:Cord) -> bool{
-        self.board.contains(&a.to_uint(self.width,self.height))
+        self.board.contains(&a.to_usize(self.width,self.height))
     }
 }
 
@@ -103,14 +103,14 @@ pub fn evolve_board(alpha: &mut RefCell<Board>, beta: &RefCell<Board>,start:usiz
         let c:Cord = Cord::from_uint(x,width,height);
         for r in range_inclusive(c.r-1,c.r+1) {
             for c in range_inclusive(c.c-1,c.c+1) {
-                cells.insert(Cord::new(r,c).to_uint(width,height).to_int().unwrap());
+                cells.insert(Cord::new(r,c).to_usize(width,height).to_isize().unwrap());
             }
         }
     }
     new.board.clear();
     }
     for x in cells.iter() {
-        let c = Cord::from_uint(x.to_uint().unwrap(),width,height);
+        let c = Cord::from_uint(x.to_usize().unwrap(),width,height);
         evolve_cell(c,alpha, beta);
     }
 }

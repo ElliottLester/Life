@@ -6,7 +6,7 @@ use life::cord::Cord;
 
 use sdl2::rect::Rect;
 
-pub struct GameState<'a> {
+pub struct GameState {
     pub pause       :bool,
     pub game_speed  :usize,
     pub width       :usize,
@@ -15,8 +15,8 @@ pub struct GameState<'a> {
     pub beta        :RefCell<Board>,
 }
 
-impl<'a> GameState<'a> {
-    pub fn new(width:usize,height:usize) -> GameState<'a>{
+impl<'a> GameState {
+    pub fn new(width:usize,height:usize) -> GameState{
         GameState {
         pause       :false,
         game_speed  :700,
@@ -37,7 +37,7 @@ impl<'a> GameState<'a> {
         let x_size = (x.to_f32().unwrap()/x_scale).to_i32().unwrap();
         let y_size = (y.to_f32().unwrap()/y_scale).to_i32().unwrap();
 
-        (y_size*width + x_size).to_uint().unwrap()
+        (y_size*width + x_size).to_usize().unwrap()
     }
 
     pub fn mouse_to_cord(&self,x:i32, y:i32,vp:Rect) -> Cord {
@@ -47,8 +47,8 @@ impl<'a> GameState<'a> {
         let x_scale:f32 = vp.w.to_f32().unwrap() / width.to_f32().unwrap();
         let y_scale:f32 = vp.h.to_f32().unwrap() / height.to_f32().unwrap();
 
-        let x_size = (x.to_f32().unwrap()/x_scale).to_int().unwrap();
-        let y_size = (y.to_f32().unwrap()/y_scale).to_int().unwrap();
+        let x_size = (x.to_f32().unwrap()/x_scale).to_isize().unwrap();
+        let y_size = (y.to_f32().unwrap()/y_scale).to_isize().unwrap();
 
         Cord::new(y_size,x_size)
 

@@ -1,23 +1,19 @@
 #![feature(core)]
 #![feature(collections)]
-#![feature(std_misc)]
-#![feature(io)]
 
 extern crate sdl2;
 mod life;
 
-use std::old_io::Timer;
-use std::time::Duration;
+use std::thread::sleep_ms;
 use std::mem::swap;
 use std::ops::{Deref, DerefMut};
 use std::num::ToPrimitive;
 
-use life::sdl::{quit_sdl,render_sdl,init_sdl,is_enclosed};
+use life::sdl::{render_sdl,init_sdl,is_enclosed};
 use life::thread::{init_threads};
 use life::game::GameState;
 
 use sdl2::rect::Point;
-use sdl2::event::{poll_event, Event};
 use sdl2::event::Event::{Quit, KeyDown, MouseMotion, MouseButtonDown};
 use sdl2::keycode::KeyCode;
 use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
@@ -30,10 +26,9 @@ fn main() {
 
     let mut game = GameState::new(WIDTH,HEIGHT);
 
-    //create timer for ticks
-    let mut timer = Timer::new().unwrap();
+    let (ctx,mut dispcontext) = init_sdl(WIDTH,HEIGHT);
 
-    let mut dispcontext = init_sdl(WIDTH,HEIGHT);
+    let mut event_pump  = ctx.event_pump();
 
     let pool = init_threads(4,game.alpha.borrow().deref());
 
@@ -47,8 +42,8 @@ fn main() {
             swap(&mut game.alpha,&mut game.beta);
         }
 
-        'event: loop { //needed to empty the event queue
-            match poll_event() {
+        'event: for event in event_pump.poll_iter() { //needed to empty the event queue
+            match event {
                 Quit{..} => break,
                 
                 MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => 
@@ -92,21 +87,17 @@ fn main() {
                     _ => (),
                 },
 
-                //the event loop is empty break
-                Event::None => break 'event,
-
                 //there was an unmatch event but there are other events to process
                 _ => ()
             }
         }
         render_sdl(&game,&mut dispcontext);
         if game.pause {
-            timer.sleep(Duration::milliseconds(25));
+            sleep_ms(25);
         } else {
-            timer.sleep(Duration::milliseconds((1000 - game.game_speed).to_i64().unwrap()));
+            sleep_ms((1000 - game.game_speed).to_u32().unwrap());
         }
     }
-    quit_sdl();
 }
 
 #[test]
