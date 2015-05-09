@@ -1,7 +1,9 @@
 #![feature(core)]
 #![feature(collections)]
+#![feature(convert)] 
 
 extern crate sdl2;
+extern crate sdl2_ttf;
 mod life;
 
 use std::thread::sleep_ms;
@@ -19,8 +21,8 @@ use sdl2::keycode::KeyCode;
 use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
 
 
-static WIDTH: usize = 200;
-static HEIGHT: usize = 125;
+static WIDTH: usize = 400;
+static HEIGHT: usize = 250;
 
 fn main() {
 
@@ -57,7 +59,7 @@ fn main() {
                     .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
                 MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => 
-               if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
+                if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                      game.alpha.borrow_mut().deref_mut()
                     .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 

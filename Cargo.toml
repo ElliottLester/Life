@@ -7,5 +7,8 @@ authors = ["Elliott Lester"]
 [dependencies]
 sdl2 = "0.2.1"
 
+[dependencies.sdl2_ttf]
+git = "https://github.com/ElliottLester/rust-sdl2_ttf.git"
+
 #[dependencies.sdl2]
 #git = "https://github.com/AngryLawyer/rust-sdl2"
