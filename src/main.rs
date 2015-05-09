@@ -9,7 +9,6 @@ mod life;
 use std::thread::sleep_ms;
 use std::mem::swap;
 use std::ops::{Deref, DerefMut};
-use std::num::ToPrimitive;
 
 use life::sdl::{render_sdl,init_sdl,is_enclosed};
 use life::thread::{init_threads};
@@ -21,8 +20,8 @@ use sdl2::keycode::KeyCode;
 use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
 
 
-static WIDTH: usize = 400;
-static HEIGHT: usize = 250;
+static WIDTH: usize = 200;
+static HEIGHT: usize = 125;
 
 fn main() {
 
@@ -34,15 +33,10 @@ fn main() {
 
     let pool = init_threads(4,game.alpha.borrow().deref());
 
+    let mut cycle:usize = game.game_speed;
+
     //main loop
     'main: loop {
-        if !game.pause {
-            pool.dispatch_threads(&game.alpha);
-
-            pool.compose_threads(&game.beta);
-
-            swap(&mut game.alpha,&mut game.beta);
-        }
 
         'event: for event in event_pump.poll_iter() { //needed to empty the event queue
             match event {
@@ -50,39 +44,53 @@ fn main() {
                 
                 MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => 
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
+                    game.update_board = true;
                     game.alpha.borrow_mut().deref_mut()
                     .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
                 MouseMotion {mousestate:RIGHTMOUSESTATE,x,y,..} => 
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
+                    game.update_board = true;
                     game.alpha.borrow_mut().deref_mut()
                     .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
                 MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => 
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
+                    game.update_board = true;
                      game.alpha.borrow_mut().deref_mut()
                     .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
                 MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => 
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
+                    game.update_board = true;
                      game.alpha.borrow_mut().deref_mut()
                     .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
                 
                 KeyDown{keycode:key, ..} => match key {
                     KeyCode::Escape =>
                         break 'main,
-                    KeyCode::G =>
-                        game.alpha.borrow_mut().deref_mut().build_glider(),
-                    KeyCode::B =>
-                        game.alpha.borrow_mut().deref_mut().build_blinker(),
-                    KeyCode::T =>
-                        game.alpha.borrow_mut().deref_mut().build_toad(),
+                    KeyCode::G => {
+                        game.alpha.borrow_mut().deref_mut().build_glider();
+                        game.update_board = true},
+                    KeyCode::B => {
+                        game.alpha.borrow_mut().deref_mut().build_blinker();
+                        game.update_board = true}
+                    KeyCode::T => {
+                        game.alpha.borrow_mut().deref_mut().build_toad();
+                        game.update_board = true},
                     KeyCode::Comma =>
-                        if game.game_speed > 500 {game.game_speed -= 25 },
+                        if game.game_speed > 0 {
+                            game.game_speed -= 5;
+                            game.update_menu = true 
+                        },
                     KeyCode::Period =>
-                        if game.game_speed < 1000 {game.game_speed += 25},
-                    KeyCode::C =>
-                        game.alpha.borrow_mut().deref_mut().board.clear(),
+                        if game.game_speed < 40 {
+                            game.game_speed += 5;
+                            game.update_menu = true
+                        },
+                    KeyCode::C => {
+                        game.alpha.borrow_mut().deref_mut().board.clear();
+                        game.update_board = true},
                     KeyCode::Space =>
                         game.pause = !game.pause,
 
@@ -93,11 +101,28 @@ fn main() {
                 _ => ()
             }
         }
+
+        if !game.pause && cycle == game.game_speed {
+            pool.dispatch_threads(&game.alpha);
+
+            pool.compose_threads(&game.beta);
+
+            swap(&mut game.alpha,&mut game.beta);
+
+            game.update_board = true;
+        }
+
         render_sdl(&game,&mut dispcontext);
-        if game.pause {
-            sleep_ms(25);
-        } else {
-            sleep_ms((1000 - game.game_speed).to_u32().unwrap());
+       
+        game.update_board = false;
+        game.update_menu = false;
+
+        sleep_ms(10);
+        
+        //count 1 second
+        cycle = match cycle {
+            x if x < game.game_speed => x+1,
+            _ => 0,
         }
     }
 }

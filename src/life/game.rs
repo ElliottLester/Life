@@ -11,6 +11,8 @@ pub struct GameState {
     pub game_speed  :usize,
     pub width       :usize,
     pub height      :usize,
+    pub update_menu :bool,
+    pub update_board:bool,
     pub alpha       :RefCell<Board>,
     pub beta        :RefCell<Board>,
 }
@@ -19,9 +21,11 @@ impl<'a> GameState {
     pub fn new(width:usize,height:usize) -> GameState{
         GameState {
         pause       :false,
-        game_speed  :700,
+        game_speed  :40,
         width       :width,
         height      :height,
+        update_menu :true,
+        update_board:true,
         alpha       :RefCell::new(Board::new(width,height)),
         beta        :RefCell::new(Board::new(width,height)),
         }
