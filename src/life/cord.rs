@@ -1,4 +1,4 @@
-use std::num::ToPrimitive;
+use num::ToPrimitive;
 
 #[derive(Copy,Clone)]
 pub struct Cord {

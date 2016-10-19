@@ -1,12 +1,10 @@
-#![feature(core)]
-#![feature(collections)]
-#![feature(convert)] 
-
 extern crate sdl2;
 extern crate sdl2_ttf;
+extern crate num;
+extern crate bit_set;
 mod life;
 
-use std::thread::sleep_ms;
+use std::thread::sleep;
 use std::mem::swap;
 use std::ops::{Deref, DerefMut};
 
@@ -16,9 +14,13 @@ use life::game::GameState;
 
 use sdl2::rect::Point;
 use sdl2::event::Event::{Quit, KeyDown, MouseMotion, MouseButtonDown};
-use sdl2::keycode::KeyCode;
-use sdl2::mouse::{RIGHTMOUSESTATE,LEFTMOUSESTATE,Mouse};
+use sdl2::keyboard::Keycode;
+use sdl2::mouse::{Mouse};
 
+// fail when error
+macro_rules! trying(
+    ($e:expr) => (match $e { Ok(e) => e, Err(e) => panic!("failed: {}", e) })
+);
 
 static WIDTH: usize = 200;
 static HEIGHT: usize = 125;
@@ -27,9 +29,9 @@ fn main() {
 
     let mut game = GameState::new(WIDTH,HEIGHT);
 
-    let (ctx,mut dispcontext) = init_sdl(WIDTH,HEIGHT);
+    let (sdl_context,ttf_context,mut dispcontext) = init_sdl(WIDTH,HEIGHT);
 
-    let mut event_pump  = ctx.event_pump();
+    let mut event_pump  = trying!(sdl_context.event_pump());
 
     let pool = init_threads(4,game.alpha.borrow().deref());
 
@@ -41,57 +43,57 @@ fn main() {
         'event: for event in event_pump.poll_iter() { //needed to empty the event queue
             match event {
                 Quit{..} => break,
-                
-                MouseMotion {mousestate:LEFTMOUSESTATE,x,y,..} => 
+
+                MouseMotion {mousestate,x,y,..} =>
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                     game.update_board = true;
-                    game.alpha.borrow_mut().deref_mut()
-                    .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
+                    if mousestate.left() {
+                    game.alpha.borrow_mut().deref_mut().set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))
+                    }
 
-                MouseMotion {mousestate:RIGHTMOUSESTATE,x,y,..} => 
-                if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
-                    game.update_board = true;
-                    game.alpha.borrow_mut().deref_mut()
-                    .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
+                    else if mousestate.right() {
+                    game.alpha.borrow_mut().deref_mut().clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))
+                    }
+                },
 
-                MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} => 
+                MouseButtonDown{mouse_btn:Mouse::Left,x,y,..} =>
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                     game.update_board = true;
                      game.alpha.borrow_mut().deref_mut()
                     .set_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
 
-                MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} => 
+                MouseButtonDown{mouse_btn:Mouse::Right,x,y,..} =>
                 if is_enclosed(dispcontext.vp_board,Point::new(x,y)) {
                     game.update_board = true;
                      game.alpha.borrow_mut().deref_mut()
                     .clear_cell(game.mouse_to_cord(x,y,dispcontext.vp_board))},
-                
-                KeyDown{keycode:key, ..} => match key {
-                    KeyCode::Escape =>
+
+                KeyDown{keycode:Some(key), ..} => match key {
+                    Keycode::Escape =>
                         break 'main,
-                    KeyCode::G => {
+                    Keycode::G => {
                         game.alpha.borrow_mut().deref_mut().build_glider();
                         game.update_board = true},
-                    KeyCode::B => {
+                    Keycode::B => {
                         game.alpha.borrow_mut().deref_mut().build_blinker();
                         game.update_board = true}
-                    KeyCode::T => {
+                    Keycode::T => {
                         game.alpha.borrow_mut().deref_mut().build_toad();
                         game.update_board = true},
-                    KeyCode::Comma =>
+                    Keycode::Comma =>
                         if game.game_speed > 0 {
                             game.game_speed -= 5;
-                            game.update_menu = true 
+                            game.update_menu = true
                         },
-                    KeyCode::Period =>
+                    Keycode::Period =>
                         if game.game_speed < 40 {
                             game.game_speed += 5;
                             game.update_menu = true
                         },
-                    KeyCode::C => {
+                    Keycode::C => {
                         game.alpha.borrow_mut().deref_mut().board.clear();
                         game.update_board = true},
-                    KeyCode::Space =>
+                    Keycode::Space =>
                         game.pause = !game.pause,
 
                     _ => (),
@@ -113,12 +115,12 @@ fn main() {
         }
 
         render_sdl(&game,&mut dispcontext);
-       
+
         game.update_board = false;
         game.update_menu = false;
 
-        sleep_ms(10);
-        
+        sleep(std::time::Duration::new(0,10));
+
         //count 1 second
         cycle = match cycle {
             x if x < game.game_speed => x+1,

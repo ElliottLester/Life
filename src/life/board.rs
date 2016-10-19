@@ -1,7 +1,9 @@
-use std::collections::{BTreeSet,BitSet};
-use std::iter::{range_inclusive};
+use std::collections::BTreeSet;
 use std::cell::RefCell;
-use std::num::ToPrimitive;
+
+use num::ToPrimitive;
+use num::range_inclusive;
+use bit_set::BitSet;
 
 use life::cord::Cord;
 
@@ -57,13 +59,13 @@ impl Board {
     pub fn set_cell(&mut self,a:Cord) {
         self.board.insert(a.to_usize(self.width,self.height));
     }
-    
+
     pub fn clear_cell(&mut self,a:Cord) {
-        self.board.remove(&a.to_usize(self.width,self.height));
+        self.board.remove(a.to_usize(self.width,self.height));
     }
 
     pub fn get_cell(&self,a:Cord) -> bool{
-        self.board.contains(&a.to_usize(self.width,self.height))
+        self.board.contains(a.to_usize(self.width,self.height))
     }
 }
 
@@ -72,8 +74,8 @@ fn evolve_cell(a:Cord,alpha: &mut RefCell<Board> ,beta: &RefCell<Board>) {
     let beta = beta.borrow();
 
     let mut n:isize = 0;
-    for r in range_inclusive(a.r-1,a.r+1) {
-        for c in range_inclusive(a.c-1,a.c+1) {
+    for r in range_inclusive(a.r-1, a.r+1) {
+        for c in range_inclusive(a.c-1, a.c+1) {
             if beta.get_cell(Cord{r:r,c:c})  {
                  n += 1;
             }

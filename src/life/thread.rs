@@ -17,7 +17,7 @@ pub struct ThreadPool {
 
 impl ThreadPool {
     pub fn dispatch_threads(&self,alpha: &RefCell<Board>) -> () {
-        for i in 0us..self.threads {
+        for i in 0usize..self.threads {
             match self.workers[i].send(alpha.clone()) {
                 Ok(_) => (),
                 Err(e) => println!("Thread {}: Sending work failed {}",i,e),
@@ -31,7 +31,7 @@ impl ThreadPool {
             let mut beta_mut = beta.borrow_mut();
             beta_mut.board.clear();
 
-            for _ in 0us..self.threads {
+            for _ in 0usize..self.threads {
                 let a1 = self.master_rx.recv().unwrap();
                 let a2 = a1.borrow();
                 let ref a3 = a2.deref().board;
@@ -55,7 +55,7 @@ pub fn init_threads(threads:usize, input: &Board) -> ThreadPool {
     let height = input.height.clone();
 
     //build threads
-    for i in 0us..threads {
+    for i in 0usize..threads {
         let (thread_tx,thread_rx): (Sender<RefCell<Board>>,Receiver<RefCell<Board>>) = mpsc::channel();
         workers.push(thread_tx);
         let master_tx = master_tx.clone();

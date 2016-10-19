@@ -1,8 +1,9 @@
 use std::cell::{RefCell};
-use std::num::ToPrimitive;
 
 use life::board::Board;
 use life::cord::Cord;
+
+use num::ToPrimitive;
 
 use sdl2::rect::Rect;
 
@@ -30,13 +31,13 @@ impl<'a> GameState {
         beta        :RefCell::new(Board::new(width,height)),
         }
     }
-    
+
     pub fn mouse_to_board(&self,x:i32, y:i32,vp:Rect) -> usize {
         let width = self.width.to_i32().unwrap();
         let height = self.height.to_i32().unwrap();
 
-        let x_scale:f32 = vp.w.to_f32().unwrap() / width.to_f32().unwrap();
-        let y_scale:f32 = vp.h.to_f32().unwrap() / height.to_f32().unwrap();
+        let x_scale:f32 = vp.width().to_f32().unwrap() / width.to_f32().unwrap();
+        let y_scale:f32 = vp.height().to_f32().unwrap() / height.to_f32().unwrap();
 
         let x_size = (x.to_f32().unwrap()/x_scale).to_i32().unwrap();
         let y_size = (y.to_f32().unwrap()/y_scale).to_i32().unwrap();
@@ -48,8 +49,8 @@ impl<'a> GameState {
         let width = self.width.to_i32().unwrap();
         let height = self.height.to_i32().unwrap();
 
-        let x_scale:f32 = vp.w.to_f32().unwrap() / width.to_f32().unwrap();
-        let y_scale:f32 = vp.h.to_f32().unwrap() / height.to_f32().unwrap();
+        let x_scale:f32 = vp.width().to_f32().unwrap() / width.to_f32().unwrap();
+        let y_scale:f32 = vp.height().to_f32().unwrap() / height.to_f32().unwrap();
 
         let x_size = (x.to_f32().unwrap()/x_scale).to_isize().unwrap();
         let y_size = (y.to_f32().unwrap()/y_scale).to_isize().unwrap();

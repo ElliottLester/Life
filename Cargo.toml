@@ -5,10 +5,13 @@ version = "0.0.1"
 authors = ["Elliott Lester"]
 
 [dependencies]
-sdl2 = "0.2.1"
+sdl2 = "0.23.0"
+sdl2_ttf = "0.23.0"
+num = "0.1.24"
+bit-set = "0.4.0"
 
-[dependencies.sdl2_ttf]
-git = "https://github.com/ElliottLester/rust-sdl2_ttf.git"
+#[dependencies.sdl2_ttf]
+#git = "https://github.com/andelf/rust-sdl2_ttf"
 
 #[dependencies.sdl2]
 #git = "https://github.com/AngryLawyer/rust-sdl2"
