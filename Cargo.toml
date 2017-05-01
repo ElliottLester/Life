@@ -5,10 +5,14 @@ version = "0.0.1"
 authors = ["Elliott Lester"]
 
 [dependencies]
-sdl2 = "0.23.0"
-sdl2_ttf = "0.23.0"
 num = "0.1.24"
 bit-set = "0.4.0"
+num_cpus = "1.1.0"
+
+[dependencies.sdl2]
+version = "0.29.1"
+default-features = false
+features = ["ttf"]
 
 #[dependencies.sdl2_ttf]
 #git = "https://github.com/andelf/rust-sdl2_ttf"

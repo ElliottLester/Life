@@ -9,7 +9,6 @@ use sdl2::surface::Surface;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::pixels::Color::{RGB, RGBA};
 
-use sdl2_ttf;
 // fail when error
 macro_rules! trying(
     ($e:expr) => (match $e { Ok(e) => e, Err(e) => panic!("failed: {}", e) })
@@ -25,15 +24,17 @@ pub fn is_enclosed(rect:Rect,point:Point) -> bool {
 }
 
 pub struct GameContext<'a> {
+    pub sdlContext:sdl2::Sdl,
+    pub ttfContext:sdl2::ttf::Sdl2TtfContext,
     renderer:sdl2::render::Renderer<'a>,
     surf_board:Surface<'a>,
     surf_menu:Surface<'a>,
-    pub font:sdl2_ttf::Font,
+    pub font:sdl2::ttf::Font<'a,'a>,
     pub vp_board:Rect,
     pub vp_menu:Rect,
 }
 
-pub fn init_sdl<'a>(width:usize,height:usize) -> (sdl2::Sdl,sdl2_ttf::Sdl2TtfContext,GameContext<'a>) {
+pub fn init_sdl<'a>(width:usize,height:usize) -> (GameContext<'a>) {
     let menu_height:u32 = 100;
 
     //SDL2 Init
@@ -63,7 +64,7 @@ pub fn init_sdl<'a>(width:usize,height:usize) -> (sdl2::Sdl,sdl2_ttf::Sdl2TtfCon
 
     //SDL2_TTF Init
     let ttf_context = trying!(
-        sdl2_ttf::init()
+        sdl2::ttf::init()
         );
 
     //TODO: fix hard path loading
@@ -90,9 +91,9 @@ pub fn init_sdl<'a>(width:usize,height:usize) -> (sdl2::Sdl,sdl2_ttf::Sdl2TtfCon
         );
 
     //return all the needed parts to the main loop
-    (sdl_context,
-     ttf_context,
-     GameContext{
+    (GameContext{
+         sdlContext:sdl_context,
+         ttfContext:ttf_context,
          renderer:renderer,
          surf_board:surf_board,
          surf_menu:surf_menu,
